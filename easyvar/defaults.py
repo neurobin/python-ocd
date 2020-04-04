@@ -1,30 +1,41 @@
+"""Default values for various objects
+"""
 
-class VoidType():
-    """A custom type that represents false"""
-    def __bool__(self):
-        return False
-    
-    def __len__(self):
-        return 0
-
-    def __setitem__(self, key, value):
-        raise NotImplementedError(self.__class__.__name__ + " does not support setting attributes")
-
-    def __setattr__(self, key, value):
-        raise NotImplementedError(self.__class__.__name__ + " does not support setting attributes")
-
-Void = VoidType()
+from easyvar.types import VoidType
 
 
-class Mod(VoidType):
+def nomodify():
     """A modifier that does not modify the value"""
-    def __call__(self, value):
-        return value
+    return value
 
-
-class Validator(VoidType):
+def always_valid():
     """A validator that always says 'Valid'"""
-    def __call__(self, value):
-        return True
+    return True
 
 
+class VarConfig():
+    """Abstract base class to be implemented inside classes that need automatic property conversion.
+
+    To make use of this, one must define a class named 'VarConf' that inherits from this
+    `VarConfig` class and implements the `get_conf` method. This method should either return
+    a `Prop` object (convert to property) or `None` (no conversion).
+    """
+
+    def get_conf(self, name, value):
+        """This method will be called on each property to get the property configuration.
+
+        It must return a `Prop` object or `None` for the particular property name.
+        
+        Must be implemented in subclass.
+
+        Args:
+            name (str): name of the property
+            value (any): Value of the property
+
+        Returns:
+            Either `None` (if not to be converted) or `Prop` object if needs to be converted to property.
+
+        """
+        raise NotImplementedError("Method 'get_conf' must be implemented in class %s" % (self.__class__.__name__,))
+        # return None # this attribute is not to be property converted
+        # return Prop() # convert to property according to Prop()

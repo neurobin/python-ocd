@@ -8,8 +8,9 @@ from abc import ABCMeta
 from pprint import pformat
 from copy import deepcopy
 
-from .defaults import Void
-from .mapattr import MapAttr
+from easyvar import Void
+from easyvar.mapattr import MapAttr
+from easyvar.defaults import VarConfig
 
 
 def make_fget(name, var_name, default=Void):
@@ -141,6 +142,9 @@ class Prop():
         self.deletable = deletable
         self.value = value      # Temporary attribute
 
+        if self.readonly and self.readonly_weak:
+            raise ValueError("readonly and readonly_weak can not be True at the same time. It's either weak or strong not both.")
+
         self.var_name_prefix = var_name_prefix
         if not isinstance(self.var_name_prefix, str) or not self.var_name_prefix:
             raise ValueError("var_name_prefix needs to be a non empty string")
@@ -154,38 +158,6 @@ class Prop():
             raise ValueError("var_name_suffix needs to be a string")
         elif self.var_name_suffix.endswith('__'):
             raise ValueError("Trailing double underscore is not allowed in var_name_suffix")
-
-
-
-class PropConfig():
-    """Abstract base class to be implemented inside classes that need automatic property conversion.
-
-    To make use of this, one must define a class named 'PropConfig' that inherits from this
-    `PropConfig` class and implements the `get_config` method. This method should either return
-    a `Prop` object (convert to property) or `None` (no conversion).
-    
-    Raises:
-        NotImplementedError: `get_config` method must be implemented
-    """
-
-    def get_config(self, name, value):
-        """This method will be called on each property to get the property configuration.
-
-        It must return a `Prop` object or `None` for the particular property name.
-        
-        Must be implemented in subclass.
-
-        Args:
-            name (str): name of the property
-            value (any): Value of the property
-
-        Returns:
-            Either `None` (if not to be converted) or `Prop` object if needs to be converted to property.
-
-        """
-        raise NotImplementedError("Method 'get_config' must be implemented in class %s" % (self.__class__.__name__,))
-        # return None # this attribute is not to be property converted
-        # return Prop() # convert to property according to Prop()
 
 
 class PropMeta(ABCMeta):
@@ -273,14 +245,14 @@ class PropMeta(ABCMeta):
         dir_cls = dir(cls)
 
         prop_config = Void
-        prop_config_class_name = 'PropConfig'
+        prop_config_class_name = 'VarConf'
         if prop_config_class_name in dir_cls:
-            PropConfigClass = getattr(cls, prop_config_class_name)
-            if inspect.isclass(PropConfigClass):
-                prop_config = PropConfigClass()
+            VarConfigClass = getattr(cls, prop_config_class_name)
+            if inspect.isclass(VarConfigClass):
+                prop_config = VarConfigClass()
             else:
-                raise TypeError("'%s' in class '%s' needs to be a *class* that inherits \
-                    and implements '%s' class." % (prop_config_class_name, class_name, prop_config_class_name,))
+                raise TypeError("'%s' is reserved by %r and it '%s' needs to be defined as a *class* that inherits \
+                    and implements '%s' class." % (prop_config_class_name, mcs, class_name, prop_config_class_name,))
 
         for n in dir_cls:
             if n.startswith('_'):
@@ -292,7 +264,7 @@ class PropMeta(ABCMeta):
 
             if prop_config and not isinstance(p, Prop):
                 # make it Prop
-                p = prop_config.get_config(n, val)
+                p = prop_config.get_conf(n, val)
 
             if isinstance(p, Prop):
                 var_name = ''.join([p.var_name_prefix, n, p.var_name_suffix])
@@ -359,8 +331,8 @@ class PropMixin(metaclass=PropMeta):
 
     ```python
     class MyClass(PropMixin):
-        class PropConfig():
-            def get_config(self, name, value):
+        class VarConf(VarConfig):
+            def get_conf(self, name, value):
                 return Prop(readonly=True)
         
         author_name = 'Jahidul Hamid'
@@ -401,15 +373,15 @@ class PropMixin(metaclass=PropMeta):
 
     ```python
     class MyClass(PropMixin):
-        class PropConfig():
-            def get_config(self, name, value):
+        class VarConf(VarConfig):
+            def get_conf(self, name, value):
                 if name.lower().startswith('ro_'):
                     # variables ending with ro_ (case insensitive) will become readonly property
                     return Prop(readonly=True)
                 elif name.lower().startswith('wro_'):
                     # vars ending with wro_ (case insensitive) will become properties whose
                     # values can be changed through internal variables (weak readonly).
-                    return Prop(readonly_weak=False)
+                    return Prop(readonly_weak=True)
                 elif name.lower().startswith('ndel_'):
                     # These properties won't be deletable
                     return Prop(deletable=False)
@@ -417,7 +389,7 @@ class PropMixin(metaclass=PropMeta):
                     # make these normal properties whose values can be changed
                     return Prop()
                 else:
-                    # other properties that do not match the above criteria
+                    # other attributes that do not match the above criteria
                     # won't be converted to properties.
                     return None
         
