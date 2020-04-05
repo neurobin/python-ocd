@@ -109,4 +109,29 @@ print(Field1.Keys.dval)
 print(d.author)
 # print(Field1.Defaults.name)
 
+class classproperty:
+    def __init__(self, method=None):
+        self.fget = method
 
+    def __get__(self, instance, cls=None):
+        return self.fget(cls)
+
+    def getter(self, method):
+        self.fget = method
+        return self
+
+
+class C(object):
+
+    @classproperty
+    def x(cls):
+        return 1
+
+print(C.x)
+
+C.x = 2
+print(C.x)
+a = C()
+a.x = 3
+
+print(C.x)
