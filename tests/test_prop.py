@@ -239,8 +239,34 @@ class Test_module_prop(unittest.TestCase):
 
 
     def test_PropMixin_Props(self):
-        # TODO
-        pass
+        class B(PropMixin):
+            name = 'John Doe'
+            employer = Prop('Google') # normal Prop property
+        
+        with self.assertRaises(AttributeError):
+            B.Props = 4 # Props is readonly
+        with self.assertRaises(AttributeError):
+            del B.Props # Props is undeletable
+        
+        with self.assertRaises(AttributeError):
+            B.Props.Defaults = 4 # Props.Defaults is readonly
+        with self.assertRaises(AttributeError):
+            del B.Props.Defaults # Props.Defaults is undeletable
+        
+        with self.assertRaises(AttributeError):
+            B.Props.Keys = 4 # Props.Keys is readonly
+        with self.assertRaises(AttributeError):
+            del B.Props.Keys # Props.Keys is undeletable
+        
+        with self.assertRaises(AttributeError):
+            B.Props.Ivan = 4 # Props.Ivan is readonly
+        with self.assertRaises(AttributeError):
+            del B.Props.Ivan # Props.Ivan is undeletable
+        
+        with self.assertRaises(AttributeError):
+            B.Props.Conf = 4 # Props.Conf is readonly
+        with self.assertRaises(AttributeError):
+            del B.Props.Conf # Props.Conf is undeletable
 
 
     def test_PropMixin_Inheritance(self):
