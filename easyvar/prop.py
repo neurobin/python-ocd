@@ -10,7 +10,7 @@ from copy import deepcopy
 
 from easyvar import Void
 from easyvar.mapattr import MapAttr
-from easyvar.defaults import VarConfig
+from easyvar import defaults
 
 
 def make_fget(name, var_name, default=Void):
@@ -30,7 +30,8 @@ def make_fget(name, var_name, default=Void):
     def fget(self):
         v = getattr(self, var_name, default)
         if v is Void:
-            raise AttributeError("Attribute '%s' exists but it is not set yet and it does not have a default value." % (name,))
+            raise AttributeError("Attribute '%s' exists but it is not set yet and it "\
+                "does not have a default value." % (name,))
         return v
     return fget
 
@@ -49,7 +50,8 @@ def make_fget_const(name, v):
     """
     def fget(self):
         if v is Void:
-            raise AttributeError("The value of this attribute '%s' is inaccessible or non-existent. Internal reference may exist but hidden." % (name,))
+            raise AttributeError("The value of this attribute '%s' is inaccessible or non-existent. "\
+                "Internal reference may exist but hidden." % (name,))
         return v
     return fget
 
@@ -94,7 +96,7 @@ def make_fdel(name, var_name=None):
         function: A deleter function
     """
     def fdel(self):
-        delattr(self, name)
+        delattr(self.__class__, name)
         if var_name:
             delattr(self, var_name)
     return fdel
@@ -112,7 +114,7 @@ def make_nofdel(name):
         function: A deleter function
     """
     def fdel(self):
-        raise AttributeError("Attribute '%s' is not deletable")
+        raise AttributeError("Attribute '%s' is not deletable" % (name,))
     return fdel
 
 
@@ -203,6 +205,30 @@ class PropMeta(ABCMeta):
         D = Defaults
         C = Conf
         I = Ivan
+
+        @staticmethod
+        def _make_fdel_plus_in_Props(name, var_name=None):
+            """Make a deleter for `property()`'s `fdel` param
+
+            This one deletes all additional properties inside Props
+            
+            Args:
+                name (str): property name
+                var_name (str, optional): internal variable name. Defaults to `None`.
+            
+            Returns:
+                function: A deleter function
+            """
+            def fdel(self):
+                delattr(self.__class__, name)
+                if var_name:
+                    delattr(self, var_name)
+                # if this property is deletable, then these would be deletable as well
+                delattr(self.__class__.Props.Keys, name)
+                delattr(self.__class__.Props.Defaults, name)
+                delattr(self.__class__.Props.Conf, name)
+                delattr(self.__class__.Props.Ivan, name)
+            return fdel
     
     Props = property(fget=make_fget_const('Props', __Props()),
                      fset=make_nofset('Props'),
@@ -239,8 +265,8 @@ class PropMeta(ABCMeta):
         reserved_aatrs = ['Props',]
         for K in reserved_aatrs:
             if K in attrs:
-                raise AttributeError("'%s' is a reserved attribute for class '%s' defined in '%r'. \
-                    Please do not redefine it." % (K, class_name, mcs,))
+                raise AttributeError("'%s' is a reserved attribute for class '%s' defined in '%r'. "\
+                    "Please do not redefine it." % (K, class_name, mcs,))
         cls = super(PropMeta, mcs).__new__(mcs, class_name, bases, attrs)
         dir_cls = dir(cls)
 
@@ -248,11 +274,11 @@ class PropMeta(ABCMeta):
         prop_config_class_name = 'VarConf'
         if prop_config_class_name in dir_cls:
             VarConfigClass = getattr(cls, prop_config_class_name)
-            if inspect.isclass(VarConfigClass):
+            try:
                 prop_config = VarConfigClass()
-            else:
-                raise TypeError("'%s' is reserved by %r and it '%s' needs to be defined as a *class* that inherits \
-                    and implements '%s' class." % (prop_config_class_name, mcs, class_name, prop_config_class_name,))
+            except:
+                raise TypeError("'%s' is reserved by %r and it needs to be defined as a *class* inside class '%s'"\
+                    ", see example in easyvar.defaults.%s" % (prop_config_class_name, mcs, class_name, prop_config_class_name,))
 
         for n in dir_cls:
             if n.startswith('_'):
@@ -264,7 +290,14 @@ class PropMeta(ABCMeta):
 
             if prop_config and not isinstance(p, Prop):
                 # make it Prop
-                p = prop_config.get_conf(n, val)
+                try:
+                    p = prop_config.get_conf(n, val)
+                except:
+                    raise TypeError("Bad implementation of class '%s' in class '%s'. "\
+                        "See example in easyvar.defaults.%s" % (prop_config_class_name, class_name, prop_config_class_name,))
+                assert p is None or isinstance(p, Prop), "return value from 'get_conf' in class %s "\
+                    "inside class '%s' needs to either return None or a Prop object. See example in "\
+                    "easyvar.defaults.'%s'" % (prop_config_class_name, class_name, prop_config_class_name,)
 
             if isinstance(p, Prop):
                 var_name = ''.join([p.var_name_prefix, n, p.var_name_suffix])
@@ -274,31 +307,27 @@ class PropMeta(ABCMeta):
                 if p.deletable:
                     # name nfdel comes from fdel only on name (n)
                     nfdel = make_fdel(n)
-                    vfdel = make_fdel(n, var_name)
+                    main_property_fdel = cls.Props._make_fdel_plus_in_Props(n, var_name)
                 else:
                     nfdel = make_nofdel(n)
-                    vfdel = nfdel
+                    main_property_fdel = nfdel
 
                 if p.value is not Void:
                     val = p.value
                 del p.value
 
+                dfget = make_fget_const(n, val) # used more than once
                 setattr(cls.Props._Conf, n, property(fget=make_fget_const(n, p), fset=nofset, fdel=nfdel))
-
                 setattr(cls.Props._Keys, n, property(fget=make_fget_const(n, n), fset=nofset, fdel=nfdel))
-
-                
+                setattr(cls.Props._Defaults, n, property(fget=dfget, fset=nofset, fdel=nfdel))
                 # default value is always readonly
                 # it does not make sense to change default value later as it will
                 # have no effect because value will act on its own deepcopy version.
-                dfset = nofset
-                dfget = make_fget_const(n, val)
-                dfdel = nfdel
-                setattr(cls.Props._Defaults, n, property(fget=dfget, fset=dfset, fdel=dfdel))
 
+                # main property configuration
                 if p.readonly:
                     # constant value, no internal vars
-                    fset = dfset
+                    fset = nofset
                     fget = dfget
                     fdel = nfdel
                 elif p.readonly_weak:
@@ -306,13 +335,13 @@ class PropMeta(ABCMeta):
                     # thus value is not constant.
                     fset = nofset
                     fget = make_fget(n, var_name, deepcopy(val))
-                    fdel = vfdel
+                    fdel = main_property_fdel
                     # save the internal var name in Ivan
                     setattr(cls.Props._Ivan, n, property(fget=make_fget_const(n, var_name), fset=nofset, fdel=nfdel))
                 else:
                     fset = make_fset(n, var_name)
                     fget = make_fget(n, var_name, deepcopy(val))
-                    fdel = vfdel
+                    fdel = main_property_fdel
                     # save the internal var name in Ivan
                     setattr(cls.Props._Ivan, n, property(fget=make_fget_const(n, var_name), fset=nofset, fdel=nfdel))
 
@@ -331,7 +360,7 @@ class PropMixin(metaclass=PropMeta):
 
     ```python
     class MyClass(PropMixin):
-        class VarConf(VarConfig):
+        class VarConf():
             def get_conf(self, name, value):
                 return Prop(readonly=True)
         
@@ -373,7 +402,7 @@ class PropMixin(metaclass=PropMeta):
 
     ```python
     class MyClass(PropMixin):
-        class VarConf(VarConfig):
+        class VarConf():
             def get_conf(self, name, value):
                 if name.lower().startswith('ro_'):
                     # variables ending with ro_ (case insensitive) will become readonly property
@@ -440,4 +469,4 @@ class PropMixin(metaclass=PropMeta):
     * Variables with leading undersocore can store `Prop` class objects without getting converted to property.
     
     """
-    pass
+    VarConf = defaults.VarConf

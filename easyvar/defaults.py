@@ -13,20 +13,21 @@ def always_valid():
     return True
 
 
-class VarConfig():
-    """Abstract base class to be implemented inside classes that need automatic property conversion.
+class VarConf():
+    """A default `VarConf` class that implements `get_conf` method that always returns `None`
+    
+    This is a dummy `VarConf` that makes no changes.
 
-    To make use of this, one must define a class named 'VarConf' that inherits from this
-    `VarConfig` class and implements the `get_conf` method. This method should either return
-    a `Prop` object (convert to property) or `None` (no conversion).
+    If you want automatic property configuration, override this class in subclasses of `PropMixin`
+    and implement the `get_conf` method to either return a `Prop` object for property
+    conversion to happen for the corresponding attribute name or return `None` if no
+    conversion is desired.
     """
 
     def get_conf(self, name, value):
         """This method will be called on each property to get the property configuration.
 
         It must return a `Prop` object or `None` for the particular property name.
-        
-        Must be implemented in subclass.
 
         Args:
             name (str): name of the property
@@ -36,6 +37,4 @@ class VarConfig():
             Either `None` (if not to be converted) or `Prop` object if needs to be converted to property.
 
         """
-        raise NotImplementedError("Method 'get_conf' must be implemented in class %s" % (self.__class__.__name__,))
-        # return None # this attribute is not to be property converted
-        # return Prop() # convert to property according to Prop()
+        return None # this attribute is not to be property converted

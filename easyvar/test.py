@@ -123,15 +123,10 @@ class classproperty:
 
 class C(object):
 
-    @classproperty
-    def x(cls):
+    @property
+    def x(self):
         return 1
 
-print(C.x)
 
-C.x = 2
-print(C.x)
 a = C()
-a.x = 3
-
-print(C.x)
+del a.x

@@ -4,7 +4,7 @@ import unittest
 from easyvar.prop import Prop, PropMixin
 from easyvar import Void
 
-class PropModuleTest(unittest.TestCase):
+class Test_module_prop(unittest.TestCase):
     def setUp(self):
         # init
         pass
@@ -87,9 +87,161 @@ class PropModuleTest(unittest.TestCase):
         b.c.append(4)
         assert b.c == [1,2,3,4]
     
-    def test_PropMixin_VarConf(self):
+    def test_PropMixin_VarConf_Validity(self):
+        with self.assertRaises(TypeError):
+            class B(PropMixin):
+                class VarConf(): # get_conf not implemented
+                    pass
+        with self.assertRaises(TypeError):
+            class B(PropMixin):
+                VarConf = 4 # VarConf is a class
+        
+        with self.assertRaises(TypeError):
+            class B(PropMixin):
+                class VarConf():
+                    def get_conf(): # needs to accept name and value pair
+                        pass
+            
+
+        class B(PropMixin):
+            class VarConf():
+                @staticmethod
+                def get_conf(n, v):
+                    return None
+
+        class B(PropMixin):
+            class VarConf():
+                @classmethod
+                def get_conf(cls, n, v):
+                    return None
+
+        with self.assertRaises(AssertionError):
+            class B(PropMixin):
+                class VarConf():
+                    def get_conf(self, n, v):
+                        return True # needs to return None or Prop object
+        
+        # OK
+        class B(PropMixin):
+            class VarConf():
+                def get_conf(self, n, v):
+                    return None
+        
+        # OK
+        class B(PropMixin):
+            class VarConf():
+                def get_conf(self, n, v):
+                    return Prop()
+    
+    def test_PropMixin_VarConf_Uses(self):
+        class B(PropMixin):
+            class VarConf():
+                def get_conf(self, n, v):
+                    return Prop(readonly=True)
+
+            name = 'John Doe' # readonly
+            employer = Prop('Google') # not readonly
+        
+        b = B()
+        with self.assertRaises(AttributeError):
+            b.name = 'Me' # Fail
+        
+        b.employer = 'Facebook' # OK
+
+
+        class B(PropMixin):
+            class VarConf():
+                def get_conf(self, n, v):
+                    if n.endswith('_ro'):
+                        return Prop(readonly=True)
+                    elif n.endswith('_wro'):
+                        return Prop(readonly_weak=True)
+                    elif n.endswith('_nd'):
+                        return Prop(deletable=False)
+                    elif n.endswith('_rond'):
+                        return Prop(deletable=False, readonly=True)
+                    elif v == 'Shady Company': # attribute with value 'Shady Company' will be readonly and undeletable
+                        return Prop(deletable=False, readonly=True)
+                    elif n.endswith('_p') or n.endswith('_var'):
+                        return Prop()
+                    else:
+                        return None
+
+            name_ro = 'John Doe' # readonly
+            employer_wro = 'Google' # weak readonly
+            employerID_nd = '34242342432' # not deletable
+            securityID_rond = '3424234312343' # readonly and not deletable
+            employer = 'Shady Company' # attribute with value 'Shady Company' is readonly and undeletable
+            current_location_p = 'Some street' # normal property
+            some_var = 34
+            current_status = 'some status' # normal attribute not property
+        
+        b = B()
+        
+        with self.assertRaises(AttributeError):
+            b.name_ro = 'John Doe' # not OK
+        
+        with self.assertRaises(AttributeError):
+            b.employer_wro = 'Microsoft' # not OK
+        b._employer_wro = 'Microsoft' # OK, as employer_wro is weak readonly
+        assert b.employer_wro == 'Microsoft' # employer_wro has changed.
+
+        with self.assertRaises(AttributeError):
+            del b.employerID_nd # error, undeletable
+        b.employerID_nd = '324ds343' # OK, not readonly
+
+        with self.assertRaises(AttributeError):
+            b.securityID_rond = '32342234' # error, readonly
+        with self.assertRaises(AttributeError):
+            del b.securityID_rond # error, not deletable
+
+        with self.assertRaises(AttributeError):
+            b.employer = 'Facebook' # error, it's value was 'Shady Company' which prevents overwrite and delete.
+        with self.assertRaises(AttributeError):
+            del b.employer # error, it's value was 'Shady Company' which prevents overwrite and delete.
+        
+        # normal property: setable, getable and deletable
+        assert b.current_location_p == 'Some street'
+        b.current_location_p = 'Some other street'
+        assert b.current_location_p == 'Some other street'
+        del b.current_location_p # this will delete the property with all of it's config
+        with self.assertRaises(AttributeError):
+            b.current_location_p # no such property anymore
+        with self.assertRaises(AttributeError):
+            B.Props.Keys.current_location_p # this has also been deleted
+        with self.assertRaises(AttributeError):
+            B.Props.Defaults.current_location_p # deleted as well
+        with self.assertRaises(AttributeError):
+            B.Props.Ivan.current_location_p # deleted
+        with self.assertRaises(AttributeError):
+            B.Props.Conf.current_location_p # deleted
+        
+        # Now if you create an attribute with the same name of the deleted property, it will be
+        # a completely new thing
+        b.current_location_p = 2 # it's just an attribute, not a property anymore
+        with self.assertRaises(AttributeError):
+            B.Props.Conf.current_location_p # it does not exist anymore.
+        # Once you delete a Prop() property you can not get it back again.
+        # If you just want to disable the property temporarily, you can do it
+        # in the following way:
+        b.some_var = Void # easyvar.Void, this will make it non existent while existing
+        with self.assertRaises(AttributeError):
+            b.some_var
+        # But the property exists:
+        assert B.Props.Defaults.some_var == 34
+        b.some_var = 12 # still a property
+
+        # this is a normal attribute not property (as defined)
+        b.current_status = 'OK'
+        with self.assertRaises(AttributeError):
+            B.Props.Defaults.current_status
+
+
+
+    def test_PropMixin_Props(self):
         # TODO
         pass
+
 
     def test_PropMixin_Inheritance(self):
         # TODO
