@@ -80,7 +80,9 @@ class Test_module_prop(unittest.TestCase):
             b.b = 5 # not OK, b.b is readonly
         
         with self.assertRaises(AttributeError):
+            print("b_internal: ", B.Props.Ivan.b)
             B.Props.Ivan.b # readonly, so no internal variable
+        
         
         B.Props.Ivan.d # weak readonly, so there is an internal variable
 

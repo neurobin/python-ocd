@@ -90,15 +90,16 @@ def make_fdel(name, var_name=None):
     
     Args:
         name (str): property name
-        var_name (str, optional): internal variable name. Defaults to `None`.
+        var_name (str): internal variable name.
     
     Returns:
         function: A deleter function
     """
     def fdel(self):
-        delattr(self.__class__, name)
         if var_name:
             delattr(self, var_name)
+        else:
+            raise AttributeError("Property '%s' belongs to the class '%r'. It can not be deleted through a class object." % (name, self.__class__,))
     return fdel
 
 def make_nofdel(name):
@@ -123,6 +124,7 @@ class Prop():
     def __init__(self, value=Void,
                  readonly_weak=False,
                  readonly=False,    # whether all values of this property should be readonly
+                 readonly_for_class=True,
                  var_name_prefix='_',
                  var_name_suffix='',
                  deletable=True):
@@ -210,29 +212,29 @@ class _Props():
     C = Conf
     I = Ivan
 
-    @staticmethod
-    def _make_fdel_plus_in_Props(name, var_name=None):
-        """Make a deleter for `property()`'s `fdel` param
+    #@staticmethod
+    # def _make_fdel_plus_in_Props(name, var_name=None):
+    #     """Make a deleter for `property()`'s `fdel` param
 
-        This one deletes all additional properties inside Props
+    #     This one deletes all additional properties inside Props
         
-        Args:
-            name (str): property name
-            var_name (str, optional): internal variable name. Defaults to `None`.
+    #     Args:
+    #         name (str): property name
+    #         var_name (str, optional): internal variable name. Defaults to `None`.
         
-        Returns:
-            function: A deleter function
-        """
-        def fdel(self):
-            delattr(self.__class__, name)
-            if var_name:
-                delattr(self, var_name)
-            # if this property is deletable, then these would be deletable as well
-            delattr(self.__class__.Props.Keys, name)
-            delattr(self.__class__.Props.Defaults, name)
-            delattr(self.__class__.Props.Conf, name)
-            delattr(self.__class__.Props.Ivan, name)
-        return fdel
+    #     Returns:
+    #         function: A deleter function
+    #     """
+    #     def fdel(self):
+    #         # delattr(self.__class__, name)
+    #         if var_name:
+    #             delattr(self, var_name)
+    #         # if this property is deletable, then these would be deletable as well
+    #         # delattr(self.__class__.Props.Keys, name)
+    #         # delattr(self.__class__.Props.Defaults, name)
+    #         # delattr(self.__class__.Props.Conf, name)
+    #         # delattr(self.__class__.Props.Ivan, name)
+    #     return fdel
 
 
 class PropMeta(ABCMeta):
@@ -248,7 +250,7 @@ class PropMeta(ABCMeta):
     default_value = MyClass.Props.Defaults.my_property
     ```
     """
-    
+    _Props_ = None
     Props = property(fget=make_fget('Props', '_Props_'),
                      fset=make_nofset('Props'),
                      fdel=make_nofdel('Props'),
@@ -278,95 +280,211 @@ class PropMeta(ABCMeta):
 
                      `Props.Ivan.author_name will` return the name of the internal variable for `author_name` property as `str`.
                      """)
+    
+    def __delattr__(self, name):
+        try:
+            isProp = getattr(self.Props.Conf, name) # returns None or Prop()
+            # if None, then it's not a property
+        except:
+            isProp = None
+        if isProp:
+            delattr(self.Props._Keys, name)
+            delattr(self.Props._Defaults, name)
+            delattr(self.Props._Conf, name)
+            if hasattr(self.Props._Ivan, name): # unlike others internal variable is not always available
+                delattr(self.Props._Ivan, name)
+        super(PropMeta, self).__delattr__(name)
+    
+    def __setattr__(self, name, value):
+        reserved = ['_Props_',]
+        if name in reserved:
+            raise AttributeError("Attribute name '%s' is reserved by %r." % (name, self.__class__,))
+        name_startswith_ = name.startswith('_')
+        try:
+            prop = getattr(self.Props._Conf, name, None)
+        except:
+            prop = None
+        if isinstance(prop, Prop):
+            # trying to overwrite a Prop() definition itself.
+            # should we allow it?
+            # ... 
+            # !!?
+            # give option: check an attribute called readonly_for_class is True or not
+            if prop.readonly_for_class:
+                raise AttributeError("Property '%s' is readonly for class %r" % (name, self.__class__,))
+            else:
+                pass
+        if not name_startswith_ and not isinstance(value, Prop):
+            p = self._get_var_conf(name, value)
+            if p:
+                # returned a Prop, this one needs to be converted to property
+                if p.value is Void:
+                    p.value = value
+                value = p
+        
+        # now value is OK for final processing
+        if not name_startswith_ and isinstance(value, Prop):
+            if not self._Props_:
+                # Props is not set, set it
+                super(PropMeta, self).__setattr__('_Props_', _Props())
+            This_Prop, Defaults_Prop, Keys_Prop, Ivan_Prop, Conf_Prop = self._makePropProperties(name, value)
+            super(PropMeta, self).__setattr__(name, This_Prop)
+            setattr(self.Props._Conf, name, Conf_Prop)
+            setattr(self.Props._Defaults, name, Defaults_Prop)
+            setattr(self.Props._Keys, name, Keys_Prop)
+            if Ivan_Prop: # unlike others internal variable is not always available
+                setattr(self.Props._Ivan, name, Ivan_Prop)
+        else:
+            super(PropMeta, self).__setattr__(name, value)
 
+
+    def _makePropProperties(self, n, p):
+        var_name = ''.join([p.var_name_prefix, n, p.var_name_suffix])
+
+        nofset = make_nofset(n)
+
+        if p.deletable:
+            # name nfdel comes from fdel only on name (n)
+            nfdel = make_fdel(n)
+            main_property_fdel = make_fdel(n, var_name)
+        else:
+            nfdel = make_nofdel(n)
+            main_property_fdel = nfdel
+
+        val = p.value
+        del p.value
+
+        dfget = make_fget_const(n, val) # used more than once
+        Conf_Prop = property(fget=make_fget_const(n, p), fset=nofset, fdel=nfdel)
+        Keys_Prop = property(fget=make_fget_const(n, n), fset=nofset, fdel=nfdel)
+        Defaults_Prop = property(fget=dfget, fset=nofset, fdel=nfdel)
+        Ivan_Prop = None
+        # default value is always readonly ^:
+        # it does not make sense to change default value later as it will
+        # have no effect because value will act on its own deepcopy version.
+
+        # main property configuration
+        if p.readonly:
+            # constant value, no internal vars
+            fset = nofset
+            fget = dfget
+            fdel = nfdel
+        elif p.readonly_weak:
+            # value can not be set through property but internal var
+            # thus value is not constant.
+            fset = nofset
+            fget = make_fget(n, var_name, deepcopy(val))
+            fdel = main_property_fdel
+            # save the internal var name in Ivan
+            Ivan_Prop = property(fget=make_fget_const(n, var_name), fset=nofset, fdel=nfdel)
+        else:
+            fset = make_fset(n, var_name)
+            fget = make_fget(n, var_name, deepcopy(val))
+            fdel = main_property_fdel
+            # save the internal var name in Ivan
+            Ivan_Prop = property(fget=make_fget_const(n, var_name), fset=nofset, fdel=nfdel)
+
+        This_Prop = property(fget=fget, fset=fset, fdel=fdel)
+        return This_Prop, Defaults_Prop, Keys_Prop, Ivan_Prop, Conf_Prop
+    
+    def _get_var_conf(self, name, value):
+        p = self.VarConf().get_conf(name, value)
+        assert p is None or isinstance(p, Prop), "return value from 'get_conf' in class 'VarConf' "\
+                    "inside class '%r' needs to either return None or a Prop object. See example in "\
+                    "easyvar.defaults.VarConf" % (self.__class__,)
+        return p
+
+    # def __init__(cls, name, bases, attr):
+    #     cls._Props_ = _Props()
+    #     return super(PropMeta, cls).__init__(name, bases, attr)
 
     def __new__(mcs, class_name, bases, attrs):
-        reserved_aatrs = ['Props',]
-        for K in reserved_aatrs:
+        rserved_attrs = ['Props', '_Props_']
+        for K in rserved_attrs:
             if K in attrs:
                 raise AttributeError("'%s' is a reserved attribute for class '%s' defined in '%r'. "\
                     "Please do not redefine it." % (K, class_name, mcs,))
         cls = super(PropMeta, mcs).__new__(mcs, class_name, bases, attrs)
-        dir_cls = dir(cls)
-        cls._Props_ = _Props()
+        # dir_cls = dir(cls)
+        
 
-        prop_config = Void
-        prop_config_class_name = 'VarConf'
-        if prop_config_class_name in dir_cls:
-            VarConfigClass = getattr(cls, prop_config_class_name)
-            try:
-                prop_config = VarConfigClass()
-            except:
-                raise TypeError("'%s' is reserved by %r and it needs to be defined as a *class* inside class '%s'"\
-                    ", see example in easyvar.defaults.%s" % (prop_config_class_name, mcs, class_name, prop_config_class_name,))
+        # prop_config = None
+        # vcname = 'VarConf'
+        # if vcname in dir_cls:
+        #     try:
+        #         prop_config = cls.VarConf()
+        #     except:
+        #         raise TypeError("'%s' is reserved by %r and it needs to be defined as a *class* inside class '%s'"\
+        #             ", see example in easyvar.defaults.%s" % (vcname, mcs, class_name, vcname,))
 
-        for n in dir_cls:
-            if n.startswith('_'):
-                # names starting with _ will not be converted to properties whether they are defined as Prop()
-                # This will allow us to define protected Prop() variables inside class for other uses.
-                continue
-            p = getattr(cls, n)
-            val = p
+        # for n in dir_cls:
+        #     if n.startswith('_'):
+        #         # names starting with _ will not be converted to properties whether they are defined as Prop()
+        #         # This will allow us to define protected Prop() variables inside class for other uses.
+        #         continue
+        #     p = getattr(cls, n)
+        #     val = p
 
-            if prop_config and not isinstance(p, Prop):
-                # make it Prop
-                try:
-                    p = prop_config.get_conf(n, val)
-                except:
-                    raise TypeError("Bad implementation of class '%s' in class '%s'. "\
-                        "See example in easyvar.defaults.%s" % (prop_config_class_name, class_name, prop_config_class_name,))
-                assert p is None or isinstance(p, Prop), "return value from 'get_conf' in class %s "\
-                    "inside class '%s' needs to either return None or a Prop object. See example in "\
-                    "easyvar.defaults.'%s'" % (prop_config_class_name, class_name, prop_config_class_name,)
+        #     if prop_config and not isinstance(p, Prop):
+        #         # make it Prop
+        #         try:
+        #             p = prop_config.get_conf(n, val)
+        #         except:
+        #             raise TypeError("Bad implementation of class '%s' in class '%s'. "\
+        #                 "See example in easyvar.defaults.%s" % (vcname, class_name, vcname,))
+        #         assert p is None or isinstance(p, Prop), "return value from 'get_conf' in class %s "\
+        #             "inside class '%s' needs to either return None or a Prop object. See example in "\
+        #             "easyvar.defaults.'%s'" % (vcname, class_name, vcname,)
 
-            if isinstance(p, Prop):
-                var_name = ''.join([p.var_name_prefix, n, p.var_name_suffix])
+        #     if isinstance(p, Prop):
+        #         setattr(cls, n, p)
+                # var_name = ''.join([p.var_name_prefix, n, p.var_name_suffix])
 
-                nofset = make_nofset(n)
+                # nofset = make_nofset(n)
 
-                if p.deletable:
-                    # name nfdel comes from fdel only on name (n)
-                    nfdel = make_fdel(n)
-                    main_property_fdel = cls.Props._make_fdel_plus_in_Props(n, var_name)
-                else:
-                    nfdel = make_nofdel(n)
-                    main_property_fdel = nfdel
+                # if p.deletable:
+                #     # name nfdel comes from fdel only on name (n)
+                #     nfdel = make_fdel(n)
+                #     main_property_fdel = cls.Props._make_fdel_plus_in_Props(n, var_name)
+                # else:
+                #     nfdel = make_nofdel(n)
+                #     main_property_fdel = nfdel
 
-                if p.value is not Void:
-                    val = p.value
-                del p.value
+                # if p.value is not Void:
+                #     val = p.value
+                # del p.value
 
-                dfget = make_fget_const(n, val) # used more than once
-                setattr(cls.Props._Conf, n, property(fget=make_fget_const(n, p), fset=nofset, fdel=nfdel))
-                setattr(cls.Props._Keys, n, property(fget=make_fget_const(n, n), fset=nofset, fdel=nfdel))
-                setattr(cls.Props._Defaults, n, property(fget=dfget, fset=nofset, fdel=nfdel))
-                # default value is always readonly
-                # it does not make sense to change default value later as it will
-                # have no effect because value will act on its own deepcopy version.
+                # dfget = make_fget_const(n, val) # used more than once
+                # setattr(cls.Props._Conf, n, property(fget=make_fget_const(n, p), fset=nofset, fdel=nfdel))
+                # setattr(cls.Props._Keys, n, property(fget=make_fget_const(n, n), fset=nofset, fdel=nfdel))
+                # setattr(cls.Props._Defaults, n, property(fget=dfget, fset=nofset, fdel=nfdel))
+                # # default value is always readonly
+                # # it does not make sense to change default value later as it will
+                # # have no effect because value will act on its own deepcopy version.
 
-                # main property configuration
-                if p.readonly:
-                    # constant value, no internal vars
-                    fset = nofset
-                    fget = dfget
-                    fdel = nfdel
-                elif p.readonly_weak:
-                    # value can not be set through property but internal var
-                    # thus value is not constant.
-                    fset = nofset
-                    fget = make_fget(n, var_name, deepcopy(val))
-                    fdel = main_property_fdel
-                    # save the internal var name in Ivan
-                    setattr(cls.Props._Ivan, n, property(fget=make_fget_const(n, var_name), fset=nofset, fdel=nfdel))
-                else:
-                    fset = make_fset(n, var_name)
-                    fget = make_fget(n, var_name, deepcopy(val))
-                    fdel = main_property_fdel
-                    # save the internal var name in Ivan
-                    setattr(cls.Props._Ivan, n, property(fget=make_fget_const(n, var_name), fset=nofset, fdel=nfdel))
+                # # main property configuration
+                # if p.readonly:
+                #     # constant value, no internal vars
+                #     fset = nofset
+                #     fget = dfget
+                #     fdel = nfdel
+                # elif p.readonly_weak:
+                #     # value can not be set through property but internal var
+                #     # thus value is not constant.
+                #     fset = nofset
+                #     fget = make_fget(n, var_name, deepcopy(val))
+                #     fdel = main_property_fdel
+                #     # save the internal var name in Ivan
+                #     setattr(cls.Props._Ivan, n, property(fget=make_fget_const(n, var_name), fset=nofset, fdel=nfdel))
+                # else:
+                #     fset = make_fset(n, var_name)
+                #     fget = make_fget(n, var_name, deepcopy(val))
+                #     fdel = main_property_fdel
+                #     # save the internal var name in Ivan
+                #     setattr(cls.Props._Ivan, n, property(fget=make_fget_const(n, var_name), fset=nofset, fdel=nfdel))
 
-                # delattr(cls, n) # may not be needed
-                setattr(cls, n, property(fget=fget, fset=fset, fdel=fdel))
+                # # delattr(cls, n) # may not be needed
+                # setattr(cls, n, property(fget=fget, fset=fset, fdel=fdel))
 
         return cls
 
