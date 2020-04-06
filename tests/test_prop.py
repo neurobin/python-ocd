@@ -207,6 +207,7 @@ class Test_module_prop(unittest.TestCase):
         b.current_location_p = 'Some other street'
         assert b.current_location_p == 'Some other street'
         del b.current_location_p # this will delete the property with all of it's config
+        print(b.current_location_p)
         with self.assertRaises(AttributeError):
             b.current_location_p # no such property anymore
         with self.assertRaises(AttributeError):
@@ -284,6 +285,7 @@ class Test_module_prop(unittest.TestCase):
             name = Prop("Overwritten")
 
         d = D()
+        D.myname = Prop('Myname')
         assert D.Props.Defaults.name == "Overwritten"
 
 

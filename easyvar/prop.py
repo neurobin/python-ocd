@@ -250,7 +250,7 @@ class PropMeta(ABCMeta):
     default_value = MyClass.Props.Defaults.my_property
     ```
     """
-    _Props_ = None
+    # _Props_ = None
     Props = property(fget=make_fget('Props', '_Props_'),
                      fset=make_nofset('Props'),
                      fdel=make_nofdel('Props'),
@@ -324,9 +324,11 @@ class PropMeta(ABCMeta):
         
         # now value is OK for final processing
         if not name_startswith_ and isinstance(value, Prop):
-            if not self._Props_:
+            if not hasattr(self, '_Props_'):
                 # Props is not set, set it
+                # del self._Props_
                 super(PropMeta, self).__setattr__('_Props_', _Props())
+            print("Creating property '%s' for class '%r'" % (name, self))
             This_Prop, Defaults_Prop, Keys_Prop, Ivan_Prop, Conf_Prop = self._makePropProperties(name, value)
             super(PropMeta, self).__setattr__(name, This_Prop)
             setattr(self.Props._Conf, name, Conf_Prop)
@@ -394,9 +396,8 @@ class PropMeta(ABCMeta):
                     "easyvar.defaults.VarConf" % (self.__class__,)
         return p
 
-    # def __init__(cls, name, bases, attr):
-    #     cls._Props_ = _Props()
-    #     return super(PropMeta, cls).__init__(name, bases, attr)
+    # def __init__(cls, name, bases, attrs):
+    #     super(PropMeta, cls).__init__(name, bases, attrs)
 
     def __new__(mcs, class_name, bases, attrs):
         rserved_attrs = ['Props', '_Props_']
@@ -405,7 +406,17 @@ class PropMeta(ABCMeta):
                 raise AttributeError("'%s' is a reserved attribute for class '%s' defined in '%r'. "\
                     "Please do not redefine it." % (K, class_name, mcs,))
         cls = super(PropMeta, mcs).__new__(mcs, class_name, bases, attrs)
-        # dir_cls = dir(cls)
+        prop_candidates = {}
+        non_candidates = ['VarConf']
+        for k in attrs:
+            if k.startswith('_') or k in non_candidates:
+                pass
+            else:
+                setattr(cls, k, attrs[k])
+        # print("")
+        # print(repr(cls))
+        # for k in prop_candidates:
+        #     setattr(cls(), k, prop_candidates[k])
         
 
         # prop_config = None
