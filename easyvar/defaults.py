@@ -2,6 +2,8 @@
 """
 
 from easyvar.types import VoidType
+from easyvar import abc
+from easyvar import prop
 
 
 def nomodify():
@@ -13,28 +15,28 @@ def always_valid():
     return True
 
 
-class VarConf():
-    """A default `VarConf` class that implements `get_conf` method that always returns `None`
+class VarConfNone(abc.VarConf):
+    """A `VarConf` class that implements `get_conf` method that always returns `None`
     
-    This is a dummy `VarConf` that makes no changes.
-
-    If you want automatic property configuration, override this class in subclasses of `PropMixin`
-    and implement the `get_conf` method to either return a `Prop` object for property
-    conversion to happen for the corresponding attribute name or return `None` if no
-    conversion is desired.
+    This is a dummy `VarConf` that makes no changes and does no automatic property conversion.
     """
 
     def get_conf(self, name, value):
-        """This method will be called on each property to get the property configuration.
-
-        It must return a `Prop` object or `None` for the particular property name.
-
-        Args:
-            name (str): name of the property
-            value (any): Value of the property
-
-        Returns:
-            Either `None` (if not to be converted) or `Prop` object if needs to be converted to property.
-
+        """Return `None` i.e no property conversion will take place
         """
-        return None # this attribute is not to be property converted
+        return None
+
+
+class VarConfAll(abc.VarConf):
+    """A `VarConf` class that implements `get_conf` method that always returns a `Prop` object with defaults.
+    
+    This `VarConf` will convert all class attributes that does not start with an undersocore '_' to properties
+    with default configuration `Prop()`.
+
+    To see the defaults, see class `easyvar.prop.Prop`
+    """
+
+    def get_conf(self, name, value):
+        """Return `Prop()` i.e all public attributes will become properties.
+        """
+        return prop.Prop()

@@ -3,6 +3,7 @@ import unittest
 
 from easyvar.prop import Prop, PropMixin
 from easyvar import Void
+from easyvar.defaults import VarConfNone
 
 class Test_module_prop(unittest.TestCase):
     def setUp(self):
@@ -90,54 +91,76 @@ class Test_module_prop(unittest.TestCase):
         assert b.c == [1,2,3,4]
     
     def test_PropMixin_VarConf_Validity(self):
+        # class that does not trigger property conversion at all
+        # will survive with a bad VarConf
+        class B(PropMixin):
+            class VarConf(): # does not inherit abc.VarConf
+                def get_conf(self, n, v):
+                    return None
         with self.assertRaises(TypeError):
             class B(PropMixin):
-                class VarConf(): # get_conf not implemented
-                    pass
+                class VarConf(): # does not inherit abc.VarConf
+                    def get_conf(self, n, v):
+                        return None
+                my_property = 'value'
+
+        class B(PropMixin):
+            class VarConf(VarConfNone): # get_conf is inherited, so OK
+                pass
+            my_property = 'value'
+
         with self.assertRaises(TypeError):
             class B(PropMixin):
                 VarConf = 4 # VarConf is a class
+                my_property = 'value'
+        # b = B()
         
         with self.assertRaises(TypeError):
             class B(PropMixin):
-                class VarConf():
+                class VarConf(VarConfNone):
                     def get_conf(): # needs to accept name and value pair
                         pass
+                my_property = 'value'
             
 
         class B(PropMixin):
-            class VarConf():
+            class VarConf(VarConfNone):
                 @staticmethod
                 def get_conf(n, v):
                     return None
+            my_property = 'value'
 
         class B(PropMixin):
-            class VarConf():
+            class VarConf(VarConfNone):
                 @classmethod
                 def get_conf(cls, n, v):
                     return None
+            my_property = 'value'
 
         with self.assertRaises(AssertionError):
             class B(PropMixin):
-                class VarConf():
+                class VarConf(VarConfNone):
                     def get_conf(self, n, v):
                         return True # needs to return None or Prop object
+                my_property = 'value'
         
         # OK
         class B(PropMixin):
-            class VarConf():
+            class VarConf(VarConfNone):
                 def get_conf(self, n, v):
                     return None
+            my_property = 'value'
         
         # OK
         class B(PropMixin):
-            class VarConf():
+            class VarConf(VarConfNone):
                 def get_conf(self, n, v):
                     return Prop()
+            my_property = 'value'
     
     def test_PropMixin_VarConf_Uses(self):
         class B(PropMixin):
-            class VarConf():
+            class VarConf(VarConfNone):
                 def get_conf(self, n, v):
                     return Prop(readonly=True)
 
@@ -152,7 +175,7 @@ class Test_module_prop(unittest.TestCase):
 
 
         class B(PropMixin):
-            class VarConf():
+            class VarConf(VarConfNone):
                 def get_conf(self, n, v):
                     if n.endswith('_ro'):
                         return Prop(readonly=True)
@@ -206,33 +229,9 @@ class Test_module_prop(unittest.TestCase):
         assert b.current_location_p == 'Some street'
         b.current_location_p = 'Some other street'
         assert b.current_location_p == 'Some other street'
-        del b.current_location_p # this will delete the property with all of it's config
-        print(b.current_location_p)
-        with self.assertRaises(AttributeError):
-            b.current_location_p # no such property anymore
-        with self.assertRaises(AttributeError):
-            B.Props.Keys.current_location_p # this has also been deleted
-        with self.assertRaises(AttributeError):
-            B.Props.Defaults.current_location_p # deleted as well
-        with self.assertRaises(AttributeError):
-            B.Props.Ivan.current_location_p # deleted
-        with self.assertRaises(AttributeError):
-            B.Props.Conf.current_location_p # deleted
-        
-        # Now if you create an attribute with the same name of the deleted property, it will be
-        # a completely new thing
-        b.current_location_p = 2 # it's just an attribute, not a property anymore
-        with self.assertRaises(AttributeError):
-            B.Props.Conf.current_location_p # it does not exist anymore.
-        # Once you delete a Prop() property you can not get it back again.
-        # If you just want to disable the property temporarily, you can do it
-        # in the following way:
-        b.some_var = Void # easyvar.Void, this will make it non existent while existing
-        with self.assertRaises(AttributeError):
-            b.some_var
-        # But the property exists:
-        assert B.Props.Defaults.some_var == 34
-        b.some_var = 12 # still a property
+        del b.current_location_p # this will delete the internal variable associated with the property
+        assert b.current_location_p == 'Some street' # default value still exists, because the propery itself can not
+        # be deleted through instance object and the property had a default value 'Some street'
 
         # this is a normal attribute not property (as defined)
         b.current_status = 'OK'
@@ -288,6 +287,21 @@ class Test_module_prop(unittest.TestCase):
         D.myname = Prop('Myname')
         assert D.Props.Defaults.name == "Overwritten"
 
+    def test_del(self):
+        # TODO
+        pass
+
+    def test_Prop_readonly_for_class(self):
+        # TODO
+        pass
+
+    def test_Prop_store_default(self):
+        # TODO
+        pass
+
+    def test_Prop_readonly_deletable(self):
+        # TODO
+        pass
 
 
 
