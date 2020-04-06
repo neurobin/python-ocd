@@ -162,6 +162,79 @@ class Prop():
             raise ValueError("Trailing double underscore is not allowed in var_name_suffix")
 
 
+class _Props():
+    """Store information of class properties"""
+
+    def __init__(self):
+        class Keys(MapAttr): pass
+        class Defaults(MapAttr): pass
+        class Conf(MapAttr): pass
+        class Ivan(MapAttr): pass
+        self._Keys_Internal_Var = Keys()
+        self._Defaults_Internal_Var = Defaults()
+        self._Conf_Internal_Var = Conf()
+        self._Ivan_Internal_Var = Ivan()
+        self._Keys_Class = Keys
+        self._Defaults_Class = Defaults
+        self._Conf_Class = Conf
+        self._Ivan_Class = Ivan
+    
+    # internal class property
+    _Keys = property(fget=make_fget('_Keys', '_Keys_Class'), fset=make_nofset('_Keys'), fdel=make_nofdel('_Keys'))
+    _Defaults = property(fget=make_fget('_Defaults', '_Defaults_Class'), fset=make_nofset('_Defaults'), fdel=make_nofdel('_Defaults'))
+    _Conf = property(fget=make_fget('_Conf', '_Conf_Class'), fset=make_nofset('_Conf'), fdel=make_nofdel('_Conf'))
+    _Ivan = property(fget=make_fget('_Ivan', '_Ivan_Class'), fset=make_nofset('_Ivan'), fdel=make_nofdel('_Ivan'))
+    
+    # class property
+    Keys = property(fget=make_fget('Keys', '_Keys_Internal_Var'),
+                    fset=make_nofset('Keys'),
+                    fdel=make_nofdel('Keys'),
+                    doc='Stores the names of properties accessible by attribute with same name. See details in doc for `Props`.')
+    Defaults = property(fget=make_fget('Defaults', '_Defaults_Internal_Var'),
+                        fset=make_nofset('Defaults'),
+                        fdel=make_nofdel('Defaults'),
+                        doc='Stores the default values of the properties accessible by attribute with same name. See details in doc for `Props`.')
+    Conf = property(fget=make_fget('Conf', '_Conf_Internal_Var'),
+                    fset=make_nofset('Conf'),
+                    fdel=make_nofdel('Conf'),
+                    doc='Stores configuration of the properties accessible by attribute with same name. See details in doc for `Props`.')
+
+    Ivan = property(fget=make_fget('Ivan', '_Ivan_Internal_Var'),
+                    fset=make_nofset('Ivan'),
+                    fdel=make_nofdel('Ivan'),
+                    doc='Stores the internal variable names of the properties accessible by attribute with same name. See details in doc for `Props`.')
+    
+    # Convenience aliases
+    K = Keys
+    D = Defaults
+    C = Conf
+    I = Ivan
+
+    @staticmethod
+    def _make_fdel_plus_in_Props(name, var_name=None):
+        """Make a deleter for `property()`'s `fdel` param
+
+        This one deletes all additional properties inside Props
+        
+        Args:
+            name (str): property name
+            var_name (str, optional): internal variable name. Defaults to `None`.
+        
+        Returns:
+            function: A deleter function
+        """
+        def fdel(self):
+            delattr(self.__class__, name)
+            if var_name:
+                delattr(self, var_name)
+            # if this property is deletable, then these would be deletable as well
+            delattr(self.__class__.Props.Keys, name)
+            delattr(self.__class__.Props.Defaults, name)
+            delattr(self.__class__.Props.Conf, name)
+            delattr(self.__class__.Props.Ivan, name)
+        return fdel
+
+
 class PropMeta(ABCMeta):
     """Metaclass for `PropMixin` that will modify the subclasses to define properties automatically.
     
@@ -175,62 +248,8 @@ class PropMeta(ABCMeta):
     default_value = MyClass.Props.Defaults.my_property
     ```
     """
-    class __Props():
-        """Store information of class properties"""
-        class _Keys(MapAttr): pass
-        class _Defaults(MapAttr): pass
-        class _Conf(MapAttr): pass
-        class _Ivan(MapAttr): pass
-        
-        Keys = property(fget=make_fget_const('Keys', _Keys()),
-                        fset=make_nofset('Keys'),
-                        fdel=make_nofdel('Keys'),
-                        doc='Stores the names of properties accessible by attribute with same name. See details in doc for `Props`.')
-        Defaults = property(fget=make_fget_const('Defaults', _Defaults()),
-                            fset=make_nofset('Defaults'),
-                            fdel=make_nofdel('Defaults'),
-                            doc='Stores the default values of the properties accessible by attribute with same name. See details in doc for `Props`.')
-        Conf = property(fget=make_fget_const('Conf', _Conf()),
-                        fset=make_nofset('Conf'),
-                        fdel=make_nofdel('Conf'),
-                        doc='Stores configuration of the properties accessible by attribute with same name. See details in doc for `Props`.')
-
-        Ivan = property(fget=make_fget_const('Ivan', _Ivan()),
-                        fset=make_nofset('Ivan'),
-                        fdel=make_nofdel('Ivan'),
-                        doc='Stores the internal variable names of the properties accessible by attribute with same name. See details in doc for `Props`.')
-        
-        # Convenience aliases
-        K = Keys
-        D = Defaults
-        C = Conf
-        I = Ivan
-
-        @staticmethod
-        def _make_fdel_plus_in_Props(name, var_name=None):
-            """Make a deleter for `property()`'s `fdel` param
-
-            This one deletes all additional properties inside Props
-            
-            Args:
-                name (str): property name
-                var_name (str, optional): internal variable name. Defaults to `None`.
-            
-            Returns:
-                function: A deleter function
-            """
-            def fdel(self):
-                delattr(self.__class__, name)
-                if var_name:
-                    delattr(self, var_name)
-                # if this property is deletable, then these would be deletable as well
-                delattr(self.__class__.Props.Keys, name)
-                delattr(self.__class__.Props.Defaults, name)
-                delattr(self.__class__.Props.Conf, name)
-                delattr(self.__class__.Props.Ivan, name)
-            return fdel
     
-    Props = property(fget=make_fget_const('Props', __Props()),
+    Props = property(fget=make_fget('Props', '_Props_'),
                      fset=make_nofset('Props'),
                      fdel=make_nofdel('Props'),
                      doc="""This attribute contains some other attributes to provide more information about properties.
@@ -269,6 +288,7 @@ class PropMeta(ABCMeta):
                     "Please do not redefine it." % (K, class_name, mcs,))
         cls = super(PropMeta, mcs).__new__(mcs, class_name, bases, attrs)
         dir_cls = dir(cls)
+        cls._Props_ = _Props()
 
         prop_config = Void
         prop_config_class_name = 'VarConf'

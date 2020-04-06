@@ -270,9 +270,21 @@ class Test_module_prop(unittest.TestCase):
 
 
     def test_PropMixin_Inheritance(self):
-        # TODO
-        pass
         
+        class B(PropMixin):
+            name = 'John Doe'
+            employer = Prop('Google') # normal Prop property
+
+        class C(B):
+            current_status = Prop('OK')
+
+        class D(C):
+            name = Prop("Overwritten")
+
+        d = D()
+        assert D.Props.Defaults.name == "Overwritten"
+
+
 
 
 
