@@ -9,7 +9,7 @@ from pprint import pformat
 from copy import deepcopy
 
 from easyvar import Void
-from easyvar.mapattr import MapAttr
+from easyvar.mapattr import MapAttr, ReadonlyClassAttr
 from easyvar import defaults
 from easyvar import abc
 
@@ -170,10 +170,14 @@ class _Props():
     """Store information of class properties"""
 
     def __init__(self):
-        class Keys(MapAttr): pass
-        class Defaults(MapAttr): pass
-        class Conf(MapAttr): pass
-        class Ivan(MapAttr): pass
+        # class Keys(MapAttr): pass
+        # class Defaults(MapAttr): pass
+        # class Conf(MapAttr): pass
+        # class Ivan(MapAttr): pass
+        class Keys(ReadonlyClassAttr): pass
+        class Defaults(ReadonlyClassAttr): pass
+        class Conf(ReadonlyClassAttr): pass
+        class Ivan(ReadonlyClassAttr): pass
         self._Keys_Internal_Var = Keys()
         self._Defaults_Internal_Var = Defaults()
         self._Conf_Internal_Var = Conf()

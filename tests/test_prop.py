@@ -303,6 +303,18 @@ class Test_module_prop(unittest.TestCase):
         
         with self.assertRaises(AttributeError):
             B.Props.D = 3
+        
+        with self.assertRaises(AttributeError):
+            B.Props._Keys.employer = 4
+        
+        with self.assertRaises(AttributeError):
+            B.Props.Keys.employer = 4
+        
+        with self.assertRaises(AttributeError):
+            del B.Props._Keys.employer
+        
+        with self.assertRaises(AttributeError):
+            del B.Props.Keys.employer
 
 
     def test_PropMixin_Inheritance(self):
