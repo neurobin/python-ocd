@@ -3,7 +3,7 @@ import unittest
 
 from easyvar.prop import Prop, PropMixin
 from easyvar import Void
-from easyvar.defaults import VarConfNone
+from easyvar.defaults import VarConfNone, VarConfAll
 
 class Test_module_prop(unittest.TestCase):
     def setUp(self):
@@ -81,7 +81,6 @@ class Test_module_prop(unittest.TestCase):
             b.b = 5 # not OK, b.b is readonly
         
         with self.assertRaises(AttributeError):
-            print("b_internal: ", B.Props.Ivan.b)
             B.Props.Ivan.b # readonly, so no internal variable
         
         
@@ -91,7 +90,7 @@ class Test_module_prop(unittest.TestCase):
         assert b.c == [1,2,3,4]
     
     def test_PropMixin_VarConf_Validity(self):
-        # class that does not trigger property conversion at all
+        # class that does not define any public attribute
         # will survive with a bad VarConf
         class B(PropMixin):
             class VarConf(): # does not inherit abc.VarConf
@@ -113,7 +112,6 @@ class Test_module_prop(unittest.TestCase):
             class B(PropMixin):
                 VarConf = 4 # VarConf is a class
                 my_property = 'value'
-        # b = B()
         
         with self.assertRaises(TypeError):
             class B(PropMixin):
@@ -245,6 +243,8 @@ class Test_module_prop(unittest.TestCase):
             name = 'John Doe'
             employer = Prop('Google') # normal Prop property
         
+        assert B.Props.Defaults.employer == 'Google'
+        
         with self.assertRaises(AttributeError):
             B.Props = 4 # Props is readonly
         with self.assertRaises(AttributeError):
@@ -269,6 +269,40 @@ class Test_module_prop(unittest.TestCase):
             B.Props.Conf = 4 # Props.Conf is readonly
         with self.assertRaises(AttributeError):
             del B.Props.Conf # Props.Conf is undeletable
+        
+        # _Props_ is the internal variable for Props
+        assert B._Props_ is B.Props
+        with self.assertRaises(AttributeError):
+            B._Props_ = 3 # still readonly :D
+        with self.assertRaises(AttributeError):
+            del B._Props_ # still undeletable :D
+        
+        # _Keys_Internal_Var and _Keys are internal vars for Props.Keys
+        with self.assertRaises(AttributeError):
+            B.Props._Keys_Internal_Var = 4 # readonly
+        with self.assertRaises(AttributeError):
+            B.Props._Keys = 4 # readonly
+        
+        # _Defaults_Internal_Var and _Defaults are internal vars for Props.Defaults
+        with self.assertRaises(AttributeError):
+            B.Props._Defaults_Internal_Var = 4 # readonly
+        with self.assertRaises(AttributeError):
+            B.Props._Defaults = 4 # readonly
+        
+        # _Ivan_Internal_Var and _Ivan are internal vars for Props.Ivan
+        with self.assertRaises(AttributeError):
+            B.Props._Ivan_Internal_Var = 4 # readonly
+        with self.assertRaises(AttributeError):
+            B.Props._Ivan = 4 # readonly
+        
+        # _Conf_Internal_Var and _Conf are internal vars for Props.Conf
+        with self.assertRaises(AttributeError):
+            B.Props._Conf_Internal_Var = 4 # readonly
+        with self.assertRaises(AttributeError):
+            B.Props._Conf = 4 # readonly
+        
+        with self.assertRaises(AttributeError):
+            B.Props.D = 3
 
 
     def test_PropMixin_Inheritance(self):
@@ -281,6 +315,7 @@ class Test_module_prop(unittest.TestCase):
             current_status = Prop('OK')
 
         class D(C):
+            """Some class """
             name = Prop("Overwritten")
 
         d = D()

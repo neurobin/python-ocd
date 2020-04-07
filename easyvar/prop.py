@@ -178,18 +178,33 @@ class _Props():
         self._Defaults_Internal_Var = Defaults()
         self._Conf_Internal_Var = Conf()
         self._Ivan_Internal_Var = Ivan()
-        self._Keys_Class = Keys
-        self._Defaults_Class = Defaults
-        self._Conf_Class = Conf
-        self._Ivan_Class = Ivan
+        self._Keys = Keys
+        self._Defaults = Defaults
+        self._Conf = Conf
+        self._Ivan = Ivan
     
-    # internal class property
-    _Keys = property(fget=make_fget('_Keys', '_Keys_Class'), fset=make_nofset('_Keys'), fdel=make_nofdel('_Keys'))
-    _Defaults = property(fget=make_fget('_Defaults', '_Defaults_Class'), fset=make_nofset('_Defaults'), fdel=make_nofdel('_Defaults'))
-    _Conf = property(fget=make_fget('_Conf', '_Conf_Class'), fset=make_nofset('_Conf'), fdel=make_nofdel('_Conf'))
-    _Ivan = property(fget=make_fget('_Ivan', '_Ivan_Class'), fset=make_nofset('_Ivan'), fdel=make_nofdel('_Ivan'))
+    def __setattr__(self, name, value):
+        # print("\nsetattr %r, %s" % (self, name,))
+        # if we keep these names in a single place (somewhere in some variable), it would be possible to change it.
+        ks = ['_Keys', '_Defaults', '_Conf', '_Ivan', '_Keys_Internal_Var', '_Defaults_Internal_Var', '_Conf_Internal_Var', '_Ivan_Internal_Var']
+        if name in ks:
+            # make singleton
+            if name in self.__dict__:
+                raise AttributeError("Attribute '%s' is reserved by %r. It can not be set." % (name, self.__class__,))
+            else:
+                super(_Props, self).__setattr__(name, value)
+        else:
+            super(_Props, self).__setattr__(name, value)
     
-    # class property
+    def __delattr__(self, name):
+        # if we keep these names in a single place (somewhere in some variable), it would be possible to change it.
+        ks = ['_Keys', '_Defaults', '_Conf', '_Ivan', '_Keys_Internal_Var', '_Defaults_Internal_Var', '_Conf_Internal_Var', '_Ivan_Internal_Var']
+        if name in ks:
+            raise AttributeError("Attribute '%s' is reserved by %r. It can not be deleted." % (name, self.__class__,))
+        else:
+            super(_Props, self).__delattr__(name)
+
+    # property
     Keys = property(fget=make_fget('Keys', '_Keys_Internal_Var'),
                     fset=make_nofset('Keys'),
                     fdel=make_nofdel('Keys'),
@@ -228,7 +243,7 @@ class PropMeta(ABCMeta):
     default_value = MyClass.Props.Defaults.my_property
     ```
     """
-    # _Props_ = None
+
     Props = property(fget=make_fget('Props', '_Props_'),
                      fset=make_nofset('Props'),
                      fdel=make_nofdel('Props'),
@@ -260,6 +275,8 @@ class PropMeta(ABCMeta):
                      """)
     
     def __delattr__(self, name):
+        if name == '_Props_': # if we keep this name in a single place (somewhere in some variable), it would be possible to change it.
+            raise AttributeError("'%s' is reserved by %r as an internal variable name. It can not be deleted." % (name, self.__class__,))
         try:
             isProp = getattr(self.Props.Conf, name) # returns None or Prop()
             # if None, then it's not a property
@@ -275,11 +292,10 @@ class PropMeta(ABCMeta):
         super(PropMeta, self).__delattr__(name)
     
     def __setattr__(self, name, value):
-        if name == '_Props_':
-            try:
-                self.__dict__[name]
+        if name == '_Props_': # if we keep this name in a single place (somewhere in some variable), it would be possible to change it.
+            if name in self.__dict__:
                 raise AttributeError("'%s' is reserved by %r as an internal variable name." % (name, self.__class__,))
-            except KeyError:
+            else:
                 super(PropMeta, self).__setattr__(name, value)
         else:
             reserved = ['VarConf',]
