@@ -1,4 +1,11 @@
-"""Our custom types are defined here"""
+"""Our custom types are defined here.
+
+-------------------------------------------------------------------
+Copyright: Md. Jahidul Hamid <jahidulhamid@yahoo.com>
+
+License: [BSD](http://www.opensource.org/licenses/bsd-license.php)
+-------------------------------------------------------------------
+"""
 
 
 class SingletonMeta(type):
@@ -23,12 +30,16 @@ class VoidType(object, metaclass=SingletonMeta):
 
     def __new__(cls):
         return Void
+
     def __reduce__(self):
         return (VoidType, ())
+
     def __copy__(self):
         return Void
+
     def __deepcopy__(self, memo):
         return Void
+
     def __call__(self, default):
         pass
 

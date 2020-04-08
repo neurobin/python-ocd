@@ -1,3 +1,16 @@
+"""A module that defines different undead and readonly classes.
+
+Undead classes have non deletable attributes. Unro classes are
+both non deletable and readonly.
+
+-------------------------------------------------------------------
+Copyright: Md. Jahidul Hamid <jahidulhamid@yahoo.com>
+
+License: [BSD](http://www.opensource.org/licenses/bsd-license.php)
+-------------------------------------------------------------------
+"""
+
+
 
 
 
@@ -64,7 +77,6 @@ class UnroMeta(UndeadMeta, ReadonlyMeta):
     """
     pass
 
-####################################################################
 ####################################################################
 
 
@@ -135,7 +147,6 @@ class ClassUnroMap(Map, metaclass=UnroMeta):
     pass
 
 
-#####################################################################
 #####################################################################
 
 
@@ -246,5 +257,4 @@ class ConstClass(ClassUnro):
     def __delattr__(self, name):
         raise AttributeError("class %r does not support attribute deletion." % (self.__class__))
 
-####################################################################################################
 ####################################################################################################

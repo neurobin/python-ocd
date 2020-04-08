@@ -2,6 +2,12 @@
 
 * Provides some functions to make getter and setter functions for various purposes.
 * Provides Mixin classes to automatically create properties (with default values if given).
+
+-------------------------------------------------------------------
+Copyright: Md. Jahidul Hamid <jahidulhamid@yahoo.com>
+
+License: [BSD](http://www.opensource.org/licenses/bsd-license.php)
+-------------------------------------------------------------------
 """
 from abc import ABCMeta
 from copy import deepcopy
