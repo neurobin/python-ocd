@@ -420,6 +420,14 @@ class Test_module_prop(unittest.TestCase):
         
         with self.assertRaises(AttributeError):
             B.Props.Defaults.begun
+    
+    def test_Prop_Void_Value(self):
+        class B(PropMixin):
+            mark = Prop(Void)
+        b = B()
+        B.mark # is the property object itself
+        with self.assertRaises(AttributeError):
+            b.mark # Void is non-existent value
 
 
 if __name__ == '__main__':

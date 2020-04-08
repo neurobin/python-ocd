@@ -370,12 +370,16 @@ class PropMeta(ABCMeta):
                         raise AttributeError("Property '%s' is readonly for %r" % (name, self,))
                     else:
                         pass
-                val = value
+                
                 if not isinstance(value, Prop):
+                    val = value
                     p = self._get_var_conf(name, value)
                     if p:
                         # returned a Prop, this one needs to be converted to property
                         value = p
+                else:
+                    # value is Prop
+                    val = value.value
                 
                 # now value is OK for final processing
                 if isinstance(value, Prop):
@@ -396,8 +400,6 @@ class PropMeta(ABCMeta):
 
     def _makePropProperties(self, n, p, val):
         """Return a tuple of all property objects"""
-        if p.value is not Void:
-            val = p.value
         var_name = ''.join([p.var_name_prefix, n, p.var_name_suffix])
 
         nofset = make_nofset(n)
