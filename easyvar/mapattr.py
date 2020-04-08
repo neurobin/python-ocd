@@ -39,45 +39,29 @@ class MapAttr(Attr):
         super(MapAttr, self).__delattr__(key)
 
 
-class SingleShotAttrMeta(type):
-    """Make class attributes single shot"""
-
-    def __setattr__(self, name, value):
-        if name in self.__dict__:
-            raise AttributeError("type(%r) allows setting one attribute just once." % (self))
-        else:
-            super(SingleShotAttrMeta, self).__setattr__(name, value)
-
-
-class ReadonlyAttrMeta(SingleShotAttrMeta):
-    """Make class attributes readonly"""
+class UndeadAttrMeta(type):
+    """Metaclass that makes class attributes undead"""
     
     def __delattr__(self, name):
         raise AttributeError("type(%r) does not support attribute deletion." % (self))
 
 
+class ReadonlyAttrMeta(UndeadAttrMeta):
+    """Metaclass that makes class attributes readonly (and undead)"""
 
-class SingleShotMapAttr(MapAttr, metaclass=SingleShotAttrMeta):
-    """An attribute mapping class that lets you set one item/attribute just once.
-
-    To set one attribute again, you first have to delete it.
-    """
-    
     def __setattr__(self, name, value):
         if name in self.__dict__:
-            raise AttributeError("%r allows setting one attribute/item just once." % (self.__class__))
+            raise AttributeError("type(%r) allows setting one attribute just once." % (self))
         else:
-            super(SingleShotMapAttr, self).__setattr__(name, value)
+            super(ReadonlyAttrMeta, self).__setattr__(name, value)
+
 
 
 class ReadonlyMapAttr(MapAttr, metaclass=ReadonlyAttrMeta):
-    """An attribute saving class that lets you set one attribute just the first time.
-    
-    The attribute becomes constant; neither can you reset it nor can you delete it.
+    """An attribute mapping class that lets you set one item/attribute just once.
+
+    Once set, it can not be reset or deleted.
     """
-    # TODO:
-    # only immediate subclass should get the expected behavior,
-    # bases is a list, for this class it's empty, len(bases) should be 1 for the first subclass
     
     def __setattr__(self, name, value):
         if name in self.__dict__:
@@ -89,24 +73,17 @@ class ReadonlyMapAttr(MapAttr, metaclass=ReadonlyAttrMeta):
         raise AttributeError("class %r does not support attribute deletion." % (self.__class__))
 
 
-
-class SingleShotAttr(Attr, metaclass=SingleShotAttrMeta):
-    """An attribute saving class that lets you set one attribute just once.
-
-    To set one attribute again, you first have to delete it.
+class UndeadMapAttr(MapAttr, metaclass=UndeadAttrMeta):
+    """An attribute saving class that lets you make undead zombie attributes that can not be killed.
     """
-    
-    def __setattr__(self, name, value):
-        if name in self.__dict__:
-            raise AttributeError("%r allows setting one attribute just once." % (self.__class__))
-        else:
-            super(SingleShotAttr, self).__setattr__(name, value)
+    def __delattr__(self, name):
+        raise AttributeError("class %r does not support attribute deletion." % (self.__class__))
 
 
 class ReadonlyAttr(Attr, metaclass=ReadonlyAttrMeta):
-    """An attribute saving class that lets you set one attribute just the first time.
-    
-    The attribute becomes constant; neither can you reset it nor can you delete it.
+    """An attribute saving class that lets you set one attribute just once.
+
+    Once set, it can not be reset or deleted.
     """
     
     def __setattr__(self, name, value):
@@ -119,7 +96,16 @@ class ReadonlyAttr(Attr, metaclass=ReadonlyAttrMeta):
         raise AttributeError("class %r does not support attribute deletion." % (self.__class__))
 
 
-class ReadonlyClassAttr(Attr, metaclass=ReadonlyAttrMeta):
+
+class UndeadAttr(Attr, metaclass=UndeadAttrMeta):
+    """An attribute saving class that lets you make undead zombie attributes.
+    """
+
+    def __delattr__(self, name):
+        raise AttributeError("class %r does not support attribute deletion." % (self.__class__))
+
+
+class ConstClass(Attr, metaclass=ReadonlyAttrMeta):
     """An attribute saving class that lets you set one attribute just the first time through class object.
 
     Instance object can not set any attributes.
@@ -128,7 +114,7 @@ class ReadonlyClassAttr(Attr, metaclass=ReadonlyAttrMeta):
     """
     
     def __setattr__(self, name, value):
-        raise AttributeError("%r allows setting one attribute just once." % (self.__class__))
+        raise AttributeError("%r does not allow setting attributes through instance objects." % (self.__class__))
 
     def __delattr__(self, name):
         raise AttributeError("class %r does not support attribute deletion." % (self.__class__))

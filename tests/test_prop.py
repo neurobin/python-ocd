@@ -333,10 +333,22 @@ class Test_module_prop(unittest.TestCase):
         d = D()
         D.myname = Prop('Myname')
         assert D.Props.Defaults.name == "Overwritten"
+        with self.assertRaises(AttributeError):
+            D.Props.Defaults.current_status # Props for class C is  not accessible through class D
 
     def test_del(self):
-        # TODO
-        pass
+        class B(PropMixin):
+            name = 'John Doe'
+            employer = Prop('Google', readonly=True) # normal Prop property
+        
+        del B.name
+        with self.assertRaises(AttributeError):
+            B.name
+        try:
+            del B.employer
+        except:raise
+        print(B.employer)
+
 
     def test_Prop_readonly_for_class(self):
         # TODO
