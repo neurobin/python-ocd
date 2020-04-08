@@ -9,7 +9,7 @@ from pprint import pformat
 from copy import deepcopy
 
 from easyvar import Void
-from easyvar.mapattr import MapAttr, ReadonlyClassAttr
+from easyvar.mapattr import Attr
 from easyvar import defaults
 from easyvar import abc
 
@@ -174,10 +174,10 @@ class _Props():
         # class Defaults(MapAttr): pass
         # class Conf(MapAttr): pass
         # class Ivan(MapAttr): pass
-        class Keys(ReadonlyClassAttr): pass
-        class Defaults(ReadonlyClassAttr): pass
-        class Conf(ReadonlyClassAttr): pass
-        class Ivan(ReadonlyClassAttr): pass
+        class Keys(Attr): pass
+        class Defaults(Attr): pass
+        class Conf(Attr): pass
+        class Ivan(Attr): pass
         self._Keys_Internal_Var = Keys()
         self._Defaults_Internal_Var = Defaults()
         self._Conf_Internal_Var = Conf()
