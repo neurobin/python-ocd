@@ -357,7 +357,7 @@ class PropMeta(ABCMeta):
                     # should we allow it?
                     # ... 
                     # !!?
-                    # give option: check whether is should be allowed or not
+                    # give option: check whether it should be allowed or not
                     if prop.is_readonly_for_class:
                         raise AttributeError("Property '%s' is readonly for %r" % (name, self,))
                     else:
