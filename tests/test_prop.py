@@ -365,7 +365,7 @@ class Test_module_prop(unittest.TestCase):
             del b.ceo
         with self.assertRaises(AttributeError):
             B.ceo = 5
-        assert B.Props.Conf.ceo.is_readonly_for_class() == True
+        assert B.Props.Conf.ceo.is_readonly_for_class == True
 
         # mark is readonly for class only
         with self.assertRaises(AttributeError):
@@ -428,6 +428,62 @@ class Test_module_prop(unittest.TestCase):
         B.mark # is the property object itself
         with self.assertRaises(AttributeError):
             b.mark # Void is non-existent value
+    
+    def test_Prop_Constness(self):
+        p = Prop()
+        with self.assertRaises(AttributeError):
+            p.value = 3
+        with self.assertRaises(AttributeError):
+            del p.value
+        with self.assertRaises(AttributeError):
+            p.is_readonly = False
+        with self.assertRaises(AttributeError):
+            p.is_readonly_for_class = False
+        with self.assertRaises(AttributeError):
+            p.is_readonly_weak = 3
+        with self.assertRaises(AttributeError):
+            p.is_undead_for_class = 3
+        with self.assertRaises(AttributeError):
+            p.is_undead_for_instance = 2
+        
+        # dels
+        with self.assertRaises(AttributeError):
+            del p.is_readonly
+        with self.assertRaises(AttributeError):
+            del p.is_readonly_for_class
+        with self.assertRaises(AttributeError):
+            del p.is_readonly_weak
+        with self.assertRaises(AttributeError):
+            del p.is_undead_for_class
+        with self.assertRaises(AttributeError):
+            del p.is_undead_for_instance
+        with self.assertRaises(AttributeError):
+            del p.value
+        with self.assertRaises(AttributeError):
+            del p.var_name_prefix
+        with self.assertRaises(AttributeError):
+            del p.var_name_suffix
+        
+        # some random new attribute
+        p.some_random___something = 4
+        with self.assertRaises(AttributeError):
+            p.some_random___something = 4
+        with self.assertRaises(AttributeError):
+            del p.some_random___something
+
+        # constants
+
+        with self.assertRaises(AttributeError):
+            Prop.RO_STRONG = 2
+        with self.assertRaises(AttributeError):
+            Prop.RO_WEAK = 1
+        with self.assertRaises(AttributeError):
+            Prop.RO_WEAK = 3
+        with self.assertRaises(AttributeError):
+            Prop.UD_INSTANCE = 1
+        with self.assertRaises(AttributeError):
+            Prop.UD_INSTANCE = 2
+
 
 
 if __name__ == '__main__':

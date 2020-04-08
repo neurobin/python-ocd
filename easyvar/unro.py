@@ -1,11 +1,11 @@
 
 
 
-class BaseMap(object):
-    """Base class for Map."""
+class Object(object):
+    """Base class for all."""
     pass
 
-class Attr(BaseMap):
+class Base(Object):
     """A class that saves attributes and lets you iter through them
     """
 
@@ -15,10 +15,10 @@ class Attr(BaseMap):
     def __iter__(self):
         return iter(self.__dict__)
 
-    __hash__ = BaseMap.__hash__
+    __hash__ = Object.__hash__
 
 
-class MapAttr(Attr):
+class Map(Base):
     """A map interface that stores items as attributes.
     
     It provides iter through keys. Values can be accessed as items or attributes.
@@ -33,34 +33,34 @@ class MapAttr(Attr):
         return self.__dict__[key]
 
     def __setitem__(self, key, value):
-        super(MapAttr, self).__setattr__(key, value)
+        super(Map, self).__setattr__(key, value)
 
     def __delitem__(self, key):
-        super(MapAttr, self).__delattr__(key)
+        super(Map, self).__delattr__(key)
 
 
 ####################################################################
 ##################### Some meta classes ############################
 ####################################################################
 
-class ZombieAttrMeta(type):
-    """Metaclass that makes class attributes zombie (not deletable)"""
+class UndeadMeta(type):
+    """Metaclass that makes class attributes undead (not deletable)"""
     
     def __delattr__(self, name):
         raise AttributeError("type(%r) does not support attribute deletion." % (self))
 
 
-class ReadonlyAttrMeta(type):
+class ReadonlyMeta(type):
     """Metaclass that makes class attributes readonly"""
 
     def __setattr__(self, name, value):
         if name in self.__dict__:
             raise AttributeError("type(%r) allows setting one attribute just once." % (self))
         else:
-            super(ReadonlyAttrMeta, self).__setattr__(name, value)
+            super(ReadonlyMeta, self).__setattr__(name, value)
 
-class ZomroAttrMeta(ZombieAttrMeta, ReadonlyAttrMeta):
-    """Metaclass that makes attributes zombie (not deletable) and readonly
+class UnroMeta(UndeadMeta, ReadonlyMeta):
+    """Metaclass that makes attributes undead (not deletable) and readonly
     """
     pass
 
@@ -73,7 +73,7 @@ class ZomroAttrMeta(ZombieAttrMeta, ReadonlyAttrMeta):
 #####################################################################
 
 
-class ClassReadonlyMapAttr(MapAttr, metaclass=ReadonlyAttrMeta):
+class ClassReadonlyMap(Map, metaclass=ReadonlyMeta):
     """An attribute mapping class that lets you set one class attribute just once.
 
     Once set, it can not be reset (unless deleted).
@@ -83,7 +83,7 @@ class ClassReadonlyMapAttr(MapAttr, metaclass=ReadonlyAttrMeta):
     pass
 
 
-class ClassReadonlyAttr(Attr, metaclass=ReadonlyAttrMeta):
+class ClassReadonly(Base, metaclass=ReadonlyMeta):
     """An attribute saving class that lets you set one class attribute just once.
 
     Once set, it can not be reset (unless deleted).
@@ -93,8 +93,8 @@ class ClassReadonlyAttr(Attr, metaclass=ReadonlyAttrMeta):
     pass
 
 
-class ClassZombieMapAttr(MapAttr, metaclass=ZombieAttrMeta):
-    """An attribute mapping class that lets you make zombie class attributes that can not be killed.
+class ClassUndeadMap(Map, metaclass=UndeadMeta):
+    """An attribute mapping class that lets you make undead class attributes that can not be killed.
 
     Once set, it can not be deleted.
 
@@ -103,8 +103,8 @@ class ClassZombieMapAttr(MapAttr, metaclass=ZombieAttrMeta):
     pass
 
 
-class ClassZombieAttr(Attr, metaclass=ZombieAttrMeta):
-    """An attribute saving class that lets you make zombie class attributes that can not be killed.
+class ClassUndead(Base, metaclass=UndeadMeta):
+    """An attribute saving class that lets you make undead class attributes that can not be killed.
 
     Once set, it can not be deleted.
 
@@ -113,9 +113,9 @@ class ClassZombieAttr(Attr, metaclass=ZombieAttrMeta):
     pass
 
 
-class ClassZomroAttr(Attr, metaclass=ZomroAttrMeta):
-    """An attribute saving class that lets you make zomro (zombie and readonly)
-    attributes that can not be killed.
+class ClassUnro(Base, metaclass=UnroMeta):
+    """An attribute saving class that lets you make unro (undead + readonly)
+    class attributes that can not be killed.
 
     Once set, it can not be reset or deleted.
 
@@ -124,9 +124,9 @@ class ClassZomroAttr(Attr, metaclass=ZomroAttrMeta):
     pass
 
 
-class ClassZomroMapAttr(MapAttr, metaclass=ZomroAttrMeta):
-    """An attribute mapping class that lets you make zomro (zombie and readonly)
-    attributes that can not be killed.
+class ClassUnroMap(Map, metaclass=UnroMeta):
+    """An attribute mapping class that lets you make unro (undead and readonly)
+    class attributes that can not be killed.
 
     Once set, it can not be reset or deleted.
 
@@ -144,7 +144,7 @@ class ClassZomroMapAttr(MapAttr, metaclass=ZomroAttrMeta):
 ### upon both class attributes and instance attributes ##############
 #####################################################################
 
-class ReadonlyMapAttr(MapAttr, metaclass=ReadonlyAttrMeta):
+class ReadonlyMap(Map, metaclass=ReadonlyMeta):
     """An attribute mapping class that lets you set one item/attribute just once.
 
     Once set, it can not be reset (unless deleted).
@@ -156,11 +156,11 @@ class ReadonlyMapAttr(MapAttr, metaclass=ReadonlyAttrMeta):
         if name in self.__dict__:
             raise AttributeError("%r allows setting one attribute/item just once." % (self.__class__))
         else:
-            super(ReadonlyMapAttr, self).__setattr__(name, value)
+            super(ReadonlyMap, self).__setattr__(name, value)
 
 
-class ReadonlyAttr(Attr, metaclass=ReadonlyAttrMeta):
-    """An attribute saving class that lets you set one item/attribute just once.
+class Readonly(Base, metaclass=ReadonlyMeta):
+    """An attribute saving class that lets you set one attribute just once.
 
     Once set, it can not be reset (unless deleted).
 
@@ -171,20 +171,11 @@ class ReadonlyAttr(Attr, metaclass=ReadonlyAttrMeta):
         if name in self.__dict__:
             raise AttributeError("%r allows setting one attribute just once." % (self.__class__))
         else:
-            super(ReadonlyAttr, self).__setattr__(name, value)
+            super(Readonly, self).__setattr__(name, value)
 
 
-class ZombieMapAttr(MapAttr, metaclass=ZombieAttrMeta):
-    """An attribute mapping class that lets you make zombie attributes that can not be killed.
-
-    Restriction imposed upon both class attributes and and instance attributes equally.
-    """
-    def __delattr__(self, name):
-        raise AttributeError("class %r does not support attribute deletion." % (self.__class__))
-
-
-class ZombieAttr(Attr, metaclass=ZombieAttrMeta):
-    """An attribute saving class that lets you make zombie attributes that can not be killed.
+class UndeadMap(Map, metaclass=UndeadMeta):
+    """An attribute mapping class that lets you make undead attributes that can not be killed.
 
     Restriction imposed upon both class attributes and and instance attributes equally.
     """
@@ -192,7 +183,16 @@ class ZombieAttr(Attr, metaclass=ZombieAttrMeta):
         raise AttributeError("class %r does not support attribute deletion." % (self.__class__))
 
 
-class ZomroAttr(Attr, metaclass=ZomroAttrMeta):
+class Undead(Base, metaclass=UndeadMeta):
+    """An attribute saving class that lets you make undead attributes that can not be killed.
+
+    Restriction imposed upon both class attributes and and instance attributes equally.
+    """
+    def __delattr__(self, name):
+        raise AttributeError("class %r does not support attribute deletion." % (self.__class__))
+
+
+class Unro(Base, metaclass=UnroMeta):
     """An attribute saving class that lets you set one attribute just once.
 
     Once set, it can not be reset or deleted.
@@ -204,13 +204,13 @@ class ZomroAttr(Attr, metaclass=ZomroAttrMeta):
         if name in self.__dict__:
             raise AttributeError("%r allows setting one attribute just once." % (self.__class__))
         else:
-            super(ZomroAttr, self).__setattr__(name, value)
+            super(Unro, self).__setattr__(name, value)
 
     def __delattr__(self, name):
         raise AttributeError("class %r does not support attribute deletion." % (self.__class__))
 
 
-class ZomroMapAttr(MapAttr, metaclass=ZomroAttrMeta):
+class UnroMap(Map, metaclass=UnroMeta):
     """An attribute mapping class that lets you set one attribute just once.
 
     Once set, it can not be reset or deleted.
@@ -222,7 +222,7 @@ class ZomroMapAttr(MapAttr, metaclass=ZomroAttrMeta):
         if name in self.__dict__:
             raise AttributeError("%r allows setting one attribute just once." % (self.__class__))
         else:
-            super(ZomroMapAttr, self).__setattr__(name, value)
+            super(UnroMap, self).__setattr__(name, value)
 
     def __delattr__(self, name):
         raise AttributeError("class %r does not support attribute deletion." % (self.__class__))
@@ -232,7 +232,7 @@ class ZomroMapAttr(MapAttr, metaclass=ZomroAttrMeta):
 ######## Some more specialized class ###############################################################
 ####################################################################################################
 
-class ConstClass(ClassZomroAttr):
+class ConstClass(ClassUnro):
     """An attribute saving class that lets you set one attribute just the first time through class object.
 
     Instance object can not set any attributes.

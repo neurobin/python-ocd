@@ -9,7 +9,7 @@ from pprint import pformat
 from copy import deepcopy
 
 from easyvar import Void
-from easyvar.mapattr import ClassReadonlyAttr, ConstClass, ZomroAttr
+from easyvar.unro import ClassReadonly, ConstClass, Unro
 from easyvar import defaults
 from easyvar import abc
 
@@ -43,7 +43,7 @@ def make_fget_const(name, v):
         v (any): the constant value of the property
     
     Raises:
-        AttributeError: when fails to get the attribute
+        AttributeError: when the constant value is Void
     
     Returns:
         function: A getter function
@@ -118,21 +118,18 @@ def make_nofdel(name):
     return fdel
 
 
-class Prop(ZomroAttr):
+class Prop(Unro):
     """A class that stores configuration for a specific property"""
-
+    # readonly options
     RO_FALSE        = 0x0000000
     RO_WEAK         = 0x0000001
     RO_STRONG       = 0x0000002 
     RO_CLASS        = 0x0000004
 
+    # undead options
     UD_FALSE        = 0x0000000
     UD_CLASS        = 0x0000001
     UD_INSTANCE     = 0x0000002
-
-    def check_opt(self, total, opt):
-        return (total & opt) != 0
-
 
     def __init__(self, value=Void,
                  readonly=False,    # True = RO_STRONG | RO_CLASS
@@ -162,6 +159,10 @@ class Prop(ZomroAttr):
         Raises:
             ValueError: When an argument fails validation check.
         """
+        
+        def check_opt(total, opt):
+            return (total & opt) != 0
+
         self.value = value      # Temporary attribute
         if readonly is True:
             self.readonly = Prop.RO_STRONG | Prop.RO_CLASS
@@ -183,7 +184,7 @@ class Prop(ZomroAttr):
         self.var_name_suffix = var_name_suffix
         self.store_default = store_default
 
-        if self.check_opt(self.readonly, Prop.RO_WEAK) and self.check_opt(self.readonly, Prop.RO_STRONG):
+        if check_opt(self.readonly, Prop.RO_WEAK) and check_opt(self.readonly, Prop.RO_STRONG):
             raise ValueError("RO_WEAK and RO_STRONG can not be True at the same time. It's either weak or strong not both.")
 
         if not isinstance(self.var_name_prefix, str) or not self.var_name_prefix:
@@ -198,34 +199,21 @@ class Prop(ZomroAttr):
         elif self.var_name_suffix.endswith('__'):
             raise ValueError("Trailing double underscore is not allowed in var_name_suffix")
 
-    def is_readonly(self):
-        return self.check_opt(self.readonly, Prop.RO_STRONG)
-    
-    def is_readonly_weak(self):
-        return self.check_opt(self.readonly, Prop.RO_WEAK)
-    
-    def is_readonly_for_class(self):
-        return self.check_opt(self.readonly, Prop.RO_CLASS)
-    
-    def is_undead_for_instance(self):
-        return self.check_opt(self.undead, Prop.UD_INSTANCE)
-    
-    def is_undead_for_class(self):
-        return self.check_opt(self.undead, Prop.UD_CLASS)
+        self.is_readonly = check_opt(self.readonly, Prop.RO_STRONG)
+        self.is_readonly_weak = check_opt(self.readonly, Prop.RO_WEAK)
+        self.is_readonly_for_class = check_opt(self.readonly, Prop.RO_CLASS)
+        self.is_undead_for_instance = check_opt(self.undead, Prop.UD_INSTANCE)
+        self.is_undead_for_class = check_opt(self.undead, Prop.UD_CLASS)
 
 
 class _Props():
     """Store information of class properties"""
 
     def __init__(self):
-        # class Keys(MapAttr): pass
-        # class Defaults(MapAttr): pass
-        # class Conf(MapAttr): pass
-        # class Ivan(MapAttr): pass
-        class Keys(ClassReadonlyAttr): pass
-        class Defaults(ClassReadonlyAttr): pass
-        class Conf(ClassReadonlyAttr): pass
-        class Ivan(ClassReadonlyAttr): pass
+        class Keys(ClassReadonly): pass
+        class Defaults(ClassReadonly): pass
+        class Conf(ClassReadonly): pass
+        class Ivan(ClassReadonly): pass
         self._Keys_Internal_Var = Keys()
         self._Defaults_Internal_Var = Defaults()
         self._Conf_Internal_Var = Conf()
@@ -323,7 +311,7 @@ class PropMeta(ABCMeta):
                      ====
                      Stores the internal variable name of property.
 
-                     `Props.Ivan.author_name will` return the name of the internal variable for `author_name` property as `str`.
+                     `Props.Ivan.author_name` will return the name of the internal variable for `author_name` property as `str`.
                      """)
     
     def __delattr__(self, name):
@@ -335,7 +323,7 @@ class PropMeta(ABCMeta):
         except:
             isProp = None
         if isProp:
-            if isProp.is_undead_for_class():
+            if isProp.is_undead_for_class:
                 raise AttributeError("Property '%s' is not deletable by %r" % (name, self,))
             delattr(self.Props._Keys, name)
             delattr(self.Props._Conf, name)
@@ -366,7 +354,7 @@ class PropMeta(ABCMeta):
                     # ... 
                     # !!?
                     # give option: check whether is should be allowed or not
-                    if prop.is_readonly_for_class():
+                    if prop.is_readonly_for_class:
                         raise AttributeError("Property '%s' is readonly for %r" % (name, self,))
                     else:
                         pass
@@ -404,7 +392,7 @@ class PropMeta(ABCMeta):
 
         nofset = make_nofset(n)
 
-        if not p.is_undead_for_instance():
+        if not p.is_undead_for_instance:
             # name nfdel comes from fdel only on name (n)
             nfdel = make_fdel(n)
             main_property_fdel = make_fdel(n, var_name)
@@ -425,12 +413,12 @@ class PropMeta(ABCMeta):
         # have no effect because value will act on its own deepcopy version.
 
         # main property configuration
-        if p.is_readonly():
+        if p.is_readonly:
             # constant value, no internal vars
             fset = nofset
             fget = dfget
             fdel = nfdel
-        elif p.is_readonly_weak():
+        elif p.is_readonly_weak:
             # value can not be set through property but internal var
             # thus value is not constant.
             fset = nofset
@@ -524,7 +512,7 @@ class PropMixin(metaclass=PropMeta):
 
     You can not change the value of the property like `m._author_name` as no internal
     variable is created when `readonly=True`. If you need internal variables, pass
-    `readonly_weak=True` which will let you change the values through internal variables.
+    `readonly=Prop.RO_WEAK` which will let you change the values through internal variables.
     By the way, all mingling with protected variables like `m._author_name`
     should be done inside class method definitions. The name of the internal variable
     `_author_name` will be made up by prefixing the property name
@@ -546,15 +534,15 @@ class PropMixin(metaclass=PropMeta):
         class VarConf(defaults.VarConfNone):
             def get_conf(self, name, value):
                 if name.lower().startswith('ro_'):
-                    # variables ending with ro_ (case insensitive) will become readonly property
+                    # variables starting with ro_ (case insensitive) will become readonly property
                     return Prop(readonly=True)
                 elif name.lower().startswith('wro_'):
-                    # vars ending with wro_ (case insensitive) will become properties whose
+                    # vars starting with wro_ (case insensitive) will become properties whose
                     # values can be changed through internal variables (weak readonly).
-                    return Prop(readonly_weak=True)
+                    return Prop(readonly=Prop.RO_WEAK)
                 elif name.lower().startswith('ndel_'):
                     # These properties won't be deletable
-                    return Prop(deletable=False)
+                    return Prop(undead=True)
                 elif: name.lower().startswith('p_'):
                     # make these normal properties whose values can be changed
                     return Prop()
