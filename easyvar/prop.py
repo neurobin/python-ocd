@@ -514,7 +514,7 @@ class PropMixin(metaclass=PropMeta):
     variable is created when `readonly=True`. If you need internal variables, pass
     `readonly=Prop.RO_WEAK` which will let you change the values through internal variables.
     By the way, all mingling with protected variables like `m._author_name`
-    should be done inside class method definitions. The name of the internal variable
+    should be done inside instance method definitions. The name of the internal variable
     `_author_name` will be made up by prefixing the property name
     with a single underscore. You can set up custom prefix and suffix (check the options
     provided by `Prop`)

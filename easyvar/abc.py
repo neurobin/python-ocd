@@ -7,7 +7,7 @@ class VarConf():
     The method `get_conf` must be implemented in your `VarConf` class.
 
     If you want automatic property configuration, create a class named `VarConf` in your
-    `PropMixin` subclass and make this `VarConf` class inherit from `easyvar.abc.VarConf`
+    `PropMixin` subclass and make your `VarConf` class inherit from `easyvar.abc.VarConf`
     or a default `VarConf` class from `easyvar.defaults` and implement the `get_conf`
     method to either return a `Prop` object for property conversion to happen for 
     the corresponding attribute name or return `None` if no conversion is desired.
