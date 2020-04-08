@@ -1,7 +1,6 @@
 """Default values for various objects
 """
 
-from easyvar.types import VoidType
 from easyvar import abc
 from easyvar import prop
 
