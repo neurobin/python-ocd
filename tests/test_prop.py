@@ -16,7 +16,7 @@ class Test_module_prop(unittest.TestCase):
 
     def test_Prop(self):
         with self.assertRaises(ValueError):
-            Prop(readonly_weak=True, readonly=True)
+            Prop(readonly=Prop.RO_WEAK | Prop.RO_STRONG)
 
     def test_Prop_var_name_prefix(self):
         with self.assertRaises(ValueError):
@@ -45,7 +45,7 @@ class Test_module_prop(unittest.TestCase):
             a = Prop(4)
             b = Prop('bvalue', readonly=True)
             c = Prop([1,2,3], readonly=True)
-            d = Prop({'a':3}, readonly_weak=True)
+            d = Prop({'a':3}, readonly=Prop.RO_WEAK)
         
         # checking if values are right
         assert B.Props.Defaults.a == 4
@@ -178,13 +178,13 @@ class Test_module_prop(unittest.TestCase):
                     if n.endswith('_ro'):
                         return Prop(readonly=True)
                     elif n.endswith('_wro'):
-                        return Prop(readonly_weak=True)
+                        return Prop(readonly=Prop.RO_WEAK)
                     elif n.endswith('_nd'):
-                        return Prop(deletable=False)
+                        return Prop(undead=True)
                     elif n.endswith('_rond'):
-                        return Prop(deletable=False, readonly=True)
+                        return Prop(undead=True, readonly=True)
                     elif v == 'Shady Company': # attribute with value 'Shady Company' will be readonly and undeletable
-                        return Prop(deletable=False, readonly=True)
+                        return Prop(undead=True, readonly=True)
                     elif n.endswith('_p') or n.endswith('_var'):
                         return Prop()
                     else:
@@ -310,11 +310,15 @@ class Test_module_prop(unittest.TestCase):
         with self.assertRaises(AttributeError):
             B.Props.Keys.employer = 4
         
-        with self.assertRaises(AttributeError):
-            del B.Props._Keys.employer
+        
+        del B.Props._Keys.employer # Direct deletion is always possible
         
         with self.assertRaises(AttributeError):
-            del B.Props.Keys.employer
+            del B.Props._Keys.employer # was deleted by hack
+        
+        # now that it was deleted, it can be reset:
+        B.Props._Keys.employer = 4
+        assert B.Props._Keys.employer == 4
 
 
     def test_PropMixin_Inheritance(self):
@@ -340,30 +344,82 @@ class Test_module_prop(unittest.TestCase):
         class B(PropMixin):
             name = 'John Doe'
             employer = Prop('Google', readonly=True) # normal Prop property
-        
+            ceo = Prop("Bill Gates", readonly=True, undead=True)
+            mark = Prop("Mark Twane", readonly=Prop.RO_CLASS)
+            pepe = Prop("Some Name", readonly=Prop.RO_CLASS|Prop.RO_WEAK)
+            alu = Prop("Potato", readonly=Prop.RO_WEAK, undead=Prop.UD_CLASS)
+            potol = Prop('Some vegetable', readonly=Prop.RO_CLASS|Prop.RO_STRONG, undead=Prop.UD_CLASS|Prop.UD_INSTANCE)
+        b = B()
         del B.name
         with self.assertRaises(AttributeError):
             B.name
-        try:
-            del B.employer
-        except:raise
-        print(B.employer)
+        
+        del B.employer # ok readonly but deletable
+        with self.assertRaises(AttributeError):
+            B.employer
+
+        with self.assertRaises(AttributeError):
+            del B.ceo
+        B.Props.Defaults.ceo # not deletable so was not deleted
+        with self.assertRaises(AttributeError):
+            del b.ceo
+        with self.assertRaises(AttributeError):
+            B.ceo = 5
+        assert B.Props.Conf.ceo.is_readonly_for_class() == True
+
+        # mark is readonly for class only
+        with self.assertRaises(AttributeError):
+            B.mark = 'Overwritten'
+        # while not readonly for instance object
+        b.mark = 'Overwritten'
+        assert b.mark == 'Overwritten'
+
+        # pepe is readonly for class and weak readonly for instance object
+        with self.assertRaises(AttributeError):
+            B.pepe = 'Some other name'
+        with self.assertRaises(AttributeError):
+            b.pepe = 'Readonly again'
+        # but pepe is weak readonly
+        b._pepe = "Overwritten" # using internal variable
+        assert b.pepe == "Overwritten"
+
+        # alu is weak readonly and undead by class
+        with self.assertRaises(AttributeError):
+            del B.alu # undead for class
+        with self.assertRaises(AttributeError):
+            del b.alu # internal variable does not exist yet
+            # internal variable is only created after changing the value at least once.
+        with self.assertRaises(AttributeError):
+            b.alu = 'Potol' # not ok, alu is weak readonly
+        b._alu = 'Potol' # ok
+        assert b.alu == 'Potol'
+        # now that the internal variable exists, it can be deleted
+        del b.alu
+        # now alu is back to its default value:
+        assert b.alu == 'Potato'
+
+        with self.assertRaises(AttributeError):
+            del B.potol
+        with self.assertRaises(AttributeError):
+            del b.potol
+        with self.assertRaises(AttributeError):
+            B.potol = 3
+        with self.assertRaises(AttributeError):
+            b.potol = 3
 
 
     def test_Prop_readonly_for_class(self):
-        # TODO
-        pass
+        class B(PropMixin):
+            mark = Prop("Mark Twane", readonly=Prop.RO_CLASS)
+        with self.assertRaises(AttributeError):
+            B.mark = 2
 
     def test_Prop_store_default(self):
-        # TODO
-        pass
-
-    def test_Prop_readonly_deletable(self):
-        # TODO
-        pass
-
-
-
+        class B(PropMixin):
+            begun = Prop('Brinjal', store_default=False)
+        
+        with self.assertRaises(AttributeError):
+            B.Props.Defaults.begun
 
 
 if __name__ == '__main__':
