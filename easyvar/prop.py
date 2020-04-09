@@ -188,9 +188,6 @@ class Prop(Unro):
         self.var_name_suffix = var_name_suffix
         self.store_default = store_default
 
-        if check_opt(self.readonly, Prop.RO_WEAK) and check_opt(self.readonly, Prop.RO_STRONG):
-            raise ValueError("RO_WEAK and RO_STRONG can not be True at the same time. It's either weak or strong not both.")
-
         if not isinstance(self.var_name_prefix, str) or not self.var_name_prefix:
             raise ValueError("var_name_prefix needs to be a non empty string")
         elif self.var_name_prefix.startswith('__'):
@@ -208,6 +205,9 @@ class Prop(Unro):
         self.is_readonly_for_class = check_opt(self.readonly, Prop.RO_CLASS)
         self.is_undead_for_instance = check_opt(self.undead, Prop.UD_INSTANCE)
         self.is_undead_for_class = check_opt(self.undead, Prop.UD_CLASS)
+
+        if self.is_readonly_weak and self.is_readonly:
+            raise ValueError("RO_WEAK and RO_STRONG can not be True at the same time. It's either weak or strong not both.")
 
 
 class _Props():
