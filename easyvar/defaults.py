@@ -9,7 +9,7 @@ def nomodify(value):
     """A modifier that does not modify the value"""
     return value
 
-def always_valid():
+def always_valid(value):
     """A validator that always says 'Valid'"""
     return True
 
