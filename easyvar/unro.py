@@ -46,10 +46,10 @@ class Map(Base):
         return self.__dict__[key]
 
     def __setitem__(self, key, value):
-        super(Map, self).__setattr__(key, value)
+        self.__setattr__(key, value)
 
     def __delitem__(self, key):
-        super(Map, self).__delattr__(key)
+        self.__delattr__(key)
 
 
 ####################################################################
@@ -105,7 +105,7 @@ class UnroMeta(UndeadMeta, ReadonlyMeta):
     pass
 
 
-class UnroMapMeta(UndeadMeta, ReadonlyMeta):
+class UnroMapMeta(UnroMeta):
     """Metaclass that makes attributes undead (not deletable) and readonly where attributes are accessible as items.
     """
 
@@ -284,6 +284,7 @@ class UnroMap(Map, metaclass=UnroMapMeta):
 ######## Some more specialized class ###############################################################
 ####################################################################################################
 
+
 class ConstClass(ClassUnro):
     """An attribute saving class that lets you set one attribute just the first time through class object.
 
@@ -297,5 +298,21 @@ class ConstClass(ClassUnro):
 
     def __delattr__(self, name):
         raise AttributeError("class %r does not support attribute deletion." % (self.__class__))
+
+
+class ConstClassMap(ClassUnroMap):
+    """An attribute mapping class that lets you set one attribute/item just the first time through class object.
+
+    Instance object can not set any attributes.
+    
+    After setting the attribute, it becomes constant; neither can you reset it nor can you delete it.
+    """
+    
+    def __setattr__(self, name, value):
+        raise AttributeError("%r does not allow setting attributes through instance objects." % (self.__class__))
+
+    def __delattr__(self, name):
+        raise AttributeError("class %r does not support attribute deletion." % (self.__class__))
+
 
 ####################################################################################################

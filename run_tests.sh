@@ -9,6 +9,7 @@ tests=(
     'tests.test_defaults'
     'tests.test_mixins_PropMixin'
     'tests.test_unro'
+    'tests.test_utils'
 )
 
 print_chars(){
