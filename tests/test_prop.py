@@ -1,7 +1,8 @@
 
 import unittest
 
-from easyvar.prop import Prop, PropMixin
+from easyvar.prop import Prop
+from easyvar.mixins import PropMixin
 from easyvar import Void
 from easyvar.defaults import VarConfNone, VarConfAll
 

@@ -5,7 +5,7 @@ from easyvar import abc
 from easyvar import prop
 
 
-def nomodify():
+def nomodify(value):
     """A modifier that does not modify the value"""
     return value
 

@@ -1,10 +1,12 @@
 #!/bin/bash
 
 tests=(
+    'tests.test_package_init'
     'tests.test_prop'
     'tests.test_abc'
     'tests.test_types'
     'tests.test_version'
+    'tests.test_defaults'
 )
 
 print_chars(){
@@ -28,5 +30,7 @@ print_msg(){
 
 for test in "${tests[@]}"; do
     print_msg "python -m $test"
-    python -m "$test"
+    if ! python -m "$test"; then
+        exit $?
+    fi
 done
