@@ -177,7 +177,7 @@ class ClassUnro(Base, metaclass=UnroMeta):
     pass
 
 
-class ClassUnroMap(Map, metaclass=UnroMeta):
+class ClassUnroMap(Map, metaclass=UnroMapMeta):
     """An attribute mapping class that lets you make unro (undead and readonly)
     class attributes that can not be killed.
 
@@ -196,7 +196,7 @@ class ClassUnroMap(Map, metaclass=UnroMeta):
 ### upon both class attributes and instance attributes ##############
 #####################################################################
 
-class ReadonlyMap(Map, metaclass=ReadonlyMeta):
+class ReadonlyMap(Map, metaclass=ReadonlyMapMeta):
     """An attribute mapping class that lets you set one item/attribute just once.
 
     Once set, it can not be reset (unless deleted).
@@ -226,7 +226,7 @@ class Readonly(Base, metaclass=ReadonlyMeta):
             super(Readonly, self).__setattr__(name, value)
 
 
-class UndeadMap(Map, metaclass=UndeadMeta):
+class UndeadMap(Map, metaclass=UndeadMapMeta):
     """An attribute mapping class that lets you make undead attributes that can not be killed.
 
     Restriction imposed upon both class attributes and and instance attributes equally.
@@ -262,7 +262,7 @@ class Unro(Base, metaclass=UnroMeta):
         raise AttributeError("class %r does not support attribute deletion." % (self.__class__))
 
 
-class UnroMap(Map, metaclass=UnroMeta):
+class UnroMap(Map, metaclass=UnroMapMeta):
     """An attribute mapping class that lets you set one attribute just once.
 
     Once set, it can not be reset or deleted.
