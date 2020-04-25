@@ -47,9 +47,12 @@ class Test_unro(unittest.TestCase):
         for attribute_name in b:
             print("Printing attribute name, value: ", (attribute_name, b[attribute_name]))
     
-    def _undead_test(self, o):
-        o.a = 3
-        del o.a
+    def _undead_test(self, obj):
+        obj.a = 3
+        with self.assertRaises(AttributeError):
+            del obj.a
+        with self.assertRaises(TypeError):
+            obj['b'] = 2
     
     def _undead_map_test(self, obj):
         obj.a = 3
@@ -67,7 +70,12 @@ class Test_unro(unittest.TestCase):
         class B(unro.ClassUndead): pass
         class C(unro.ClassUndeadMap): pass
 
+        self._undead_test(B)
+        with self.assertRaises(AssertionError):
+            self._undead_test(B())
         self._undead_map_test(C)
+        with self.assertRaises(AssertionError):
+            self._undead_map_test(C())
 
 
 
