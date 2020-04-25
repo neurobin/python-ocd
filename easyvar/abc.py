@@ -1,4 +1,11 @@
+"""Our abstract base classes
 
+-------------------------------------------------------------------
+Copyright: Md. Jahidul Hamid <jahidulhamid@yahoo.com>
+
+License: [BSD](http://www.opensource.org/licenses/bsd-license.php)
+-------------------------------------------------------------------
+"""
 
 
 class VarConf():

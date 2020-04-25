@@ -12,7 +12,7 @@ class SingletonMeta(type):
     _instances = {}
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = super(SingletonMeta, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
 
@@ -25,7 +25,7 @@ class VoidType(object, metaclass=SingletonMeta):
     python object that is commonly used and should be retained its meaning as a valid value
     to a variable while we use `Void` internally to represent variables without any valid value.
 
-    Thus, an object with `Void` value should be treated as non-existent object.
+    Thus, an object with `Void` value should be treated as an object with non-existent value.
     """
 
     def __new__(cls):
