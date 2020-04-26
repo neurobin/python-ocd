@@ -8,17 +8,17 @@ class Test_Types(unittest.TestCase):
     def setUp(self):
         # init
         pass
-    
+
     def tearDown(self):
         # destruct
         pass
-    
+
     def test_SingletonMeta(self):
         class B(metaclass=SingletonMeta):
             pass
 
         b = B()
-    
+
     def test_VoidType(self):
         V = VoidType()
         self.assertTrue(V is Void) # singleton
@@ -35,6 +35,10 @@ class Test_Types(unittest.TestCase):
         self.assertTrue(copy.copy(Void) is Void)
         self.assertTrue(copy.deepcopy(Void) is Void)
         self.assertTrue(len(Void) == 0)
+        with self.assertRaises(NotImplementedError):
+            Void.attr = 3
+        with self.assertRaises(NotImplementedError):
+            Void['attr'] = 3
 
 
 
