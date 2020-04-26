@@ -34,6 +34,6 @@ print_msg(){
 for test in "${tests[@]}"; do
     print_msg "python -m $test"
     if ! python -m "$test"; then
-        exit $?
+        exit 1
     fi
 done

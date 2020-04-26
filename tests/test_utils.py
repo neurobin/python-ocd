@@ -7,11 +7,11 @@ class Test_utils(unittest.TestCase):
     def setUp(self):
         # init
         pass
-    
+
     def tearDown(self):
         # destruct
         pass
-    
+
     def test_deepcopy(self):
         class B(object): pass
         b = B()

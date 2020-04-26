@@ -9,6 +9,7 @@ Copyright: Md. Jahidul Hamid <jahidulhamid@yahoo.com>
 License: [BSD](http://www.opensource.org/licenses/bsd-license.php)
 -------------------------------------------------------------------
 """
+
 from abc import ABCMeta
 from copy import deepcopy
 
@@ -19,15 +20,15 @@ from easyvar import abc
 
 def make_fget(name, var_name, default=Void):
     """Return a function compatible with `property()` function `fget` parameter
-    
+
     Args:
         name (str): name of the property
         var_name (str): internal variable name
         default (any, optional): Default value. Defaults to Void.
-    
+
     Raises:
         AttributeError: when fails to get the attribute
-    
+
     Returns:
         function: A getter function
     """
@@ -40,14 +41,14 @@ def make_fget(name, var_name, default=Void):
 
 def make_fget_const(name, v):
     """Make a getter for `property()` function `fget` param that returns a constant value.
-    
+
     Args:
         name (str): name of the property
         v (any): the constant value of the property
-    
+
     Raises:
         AttributeError: when the constant value is Void
-    
+
     Returns:
         function: A getter function
     """
@@ -59,11 +60,11 @@ def make_fget_const(name, v):
 
 def make_fset(name, var_name):
     """Make a setter for `property()`'s `fset` param for property name and internal variable name
-    
+
     Args:
         name (str): property name
         var_name (str): internal variable name
-    
+
     Returns:
         function: A setter function
     """
@@ -73,13 +74,13 @@ def make_fset(name, var_name):
 
 def make_nofset(name):
     """Make a setter for `property()`'s `fset` param that raises `AttributeError`
-    
+
     Args:
         name (str): property name
-    
+
     Raises:
         AttributeError: always raises exception
-    
+
     Returns:
         function: A setter function
     """
@@ -89,11 +90,11 @@ def make_nofset(name):
 
 def make_fdel(name, var_name=None):
     """Make a deleter for `property()`'s `fdel` param
-    
+
     Args:
         name (str): property name
         var_name (str): internal variable name.
-    
+
     Returns:
         function: A deleter function
     """
@@ -106,13 +107,13 @@ def make_fdel(name, var_name=None):
 
 def make_nofdel(name):
     """Make a deleter for `property()`'s `fdel` param that raises `AttributeError`
-    
+
     Args:
         name (str): property name
-    
+
     Raises:
         AttributeError: always raises exception
-    
+
     Returns:
         function: A deleter function
     """
@@ -126,7 +127,7 @@ class Prop(Unro):
     # readonly options
     RO_FALSE        = 0x0000000
     RO_WEAK         = 0x0000001
-    RO_STRONG       = 0x0000002 
+    RO_STRONG       = 0x0000002
     RO_CLASS        = 0x0000004
 
     # undead options
@@ -141,7 +142,7 @@ class Prop(Unro):
                  var_name_suffix='',
                  undead=False):     # True = UD_CLASS | UD_INSTANCE
         """Prop constructor that creates property config.
-        
+
         Args:
             value (any, optional): Default value for the property.
             readonly (bool, optional): Unchangeable property. Mutable values can still be changed inplace. Defaults to False. Readonly modes can be the following:
@@ -158,11 +159,11 @@ class Prop(Unro):
                 UD_INSTANCE: undead for instance object of the class.
                 True: Equvalent to UD_CLASS | UD_INSTANCE
                 False: not undead i.e deletable.
-        
+
         Raises:
             ValueError: When an argument fails validation check.
         """
-        
+
         def check_opt(total, opt):
             return (total & opt) != 0
 
@@ -225,7 +226,7 @@ class _Props():
         self._Defaults = Defaults
         self._Conf = Conf
         self._Ivan = Ivan
-    
+
     def __setattr__(self, name, value):
         # print("\nsetattr %r, %s" % (self, name,))
         # if we keep these names in a single place (somewhere in some variable), it would be possible to change it.
@@ -238,7 +239,7 @@ class _Props():
                 super(_Props, self).__setattr__(name, value)
         else:
             super(_Props, self).__setattr__(name, value)
-    
+
     def __delattr__(self, name):
         # if we keep these names in a single place (somewhere in some variable), it would be possible to change it.
         ks = ['_Keys', '_Defaults', '_Conf', '_Ivan', '_Keys_Internal_Var', '_Defaults_Internal_Var', '_Conf_Internal_Var', '_Ivan_Internal_Var']
@@ -265,7 +266,7 @@ class _Props():
                     fset=make_nofset('Ivan'),
                     fdel=make_nofdel('Ivan'),
                     doc='Stores the internal variable names of the properties accessible by attribute with same name. See details in doc for `Props`.')
-    
+
     # Convenience aliases
     K = Keys
     D = Defaults
@@ -275,14 +276,14 @@ class _Props():
 
 class PropMeta(ABCMeta):
     """Metaclass for `PropMixin` that will modify the subclasses to define properties automatically.
-    
+
     Do note that this is a metaclass, you don't need to inherit it, rather inherit the `PropMixin` class.
     The `Props` attribute of this class will be available through your class name. For example:
 
     ```python
     class MyClass(PropMixin):
         my_property = Prop('Building A/2')
-    
+
     default_value = MyClass.Props.Defaults.my_property
     ```
     """
@@ -297,7 +298,7 @@ class PropMeta(ABCMeta):
                      Contains the name of the properties accessible as attributes.
                      For example, an attribute named 'author_name' can be accessed as:
                      `Props.Keys.author_name`. It will return the name of the attribute as string: 'author_name'
-                     
+
                      Defaults
                      ========
                      Stores the default values of properties.
@@ -316,7 +317,7 @@ class PropMeta(ABCMeta):
 
                      `Props.Ivan.author_name` will return the name of the internal variable for `author_name` property as `str`.
                      """)
-    
+
     def __delattr__(self, name):
         if name == '_Props_': # if we keep this name in a single place (somewhere in some variable), it would be possible to change it.
             raise AttributeError("'%s' is reserved by %r as an internal variable name. It can not be deleted." % (name, self.__class__,))
@@ -335,7 +336,7 @@ class PropMeta(ABCMeta):
             if hasattr(self.Props._Ivan, name): # unlike others internal variable is not always available
                 delattr(self.Props._Ivan, name)
         super(PropMeta, self).__delattr__(name)
-    
+
     def __setattr__(self, name, value):
         if name == '_Props_': # if we keep this name in a single place (somewhere in some variable), it would be possible to change it.
             if name in self.__dict__:
@@ -354,14 +355,14 @@ class PropMeta(ABCMeta):
                 if isinstance(prop, Prop):
                     # trying to overwrite a Prop() definition itself.
                     # should we allow it?
-                    # ... 
+                    # ...
                     # !!?
                     # give option: check whether it should be allowed or not
                     if prop.is_readonly_for_class:
                         raise AttributeError("Property '%s' is readonly for %r" % (name, self,))
                     else:
                         pass
-                
+
                 if not isinstance(value, Prop):
                     val = value
                     p = self._get_var_conf(name, value)
@@ -371,7 +372,7 @@ class PropMeta(ABCMeta):
                 else:
                     # value is Prop
                     val = value.value
-                
+
                 # now value is OK for final processing
                 if isinstance(value, Prop):
                     # print("Creating property '%s' for class '%r'" % (name, self))
@@ -438,7 +439,7 @@ class PropMeta(ABCMeta):
 
         This_Prop = property(fget=fget, fset=fset, fdel=fdel)
         return This_Prop, Defaults_Prop, Keys_Prop, Ivan_Prop, Conf_Prop
-    
+
     def _get_var_conf(self, name, value):
         """Either return Prop object or None"""
         # print("\nchecking var_conf for "+name)

@@ -84,7 +84,7 @@ class DictItem(MutableMapping, BaseItem):
         else:
             raise KeyError("%s does not support field: %s" %
                 (self.__class__.__name__, key))
-        
+
 
     def __len__(self):
         return len(self._values)
@@ -102,7 +102,6 @@ class DictItem(MutableMapping, BaseItem):
 
     def copy(self):
         return self.__class__(self)
-
 
 @six.add_metaclass(ItemMeta)
 class Item(DictItem):
