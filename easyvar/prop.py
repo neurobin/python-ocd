@@ -62,7 +62,7 @@ def make_fget_const(name, v):
         if v is Void:
             raise AttributeError("The value of property '%s' is non-existent "
                                  "for %r. It can neither be read nor be "
-                                 "written." % (name,self,))
+                                 "written." % (name, self,))
         return v
     return fget
 

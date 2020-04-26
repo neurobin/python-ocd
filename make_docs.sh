@@ -3,6 +3,11 @@
 docs=(
     'easyvar.prop'
     'easyvar.mixins'
+    'easyvar.types'
+    'easyvar.defaults'
+    'easyvar.unro'
+    'easyvar.utils'
+    'easyvar.abc'
 )
 
 print_chars(){
