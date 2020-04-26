@@ -431,8 +431,6 @@ class PropMeta(ABCMeta):
                     if prop.is_readonly_for_class:
                         raise AttributeError("Property '%s' is readonly for "
                                              "%r" % (name, self,))
-                    else:
-                        pass
 
                 if not isinstance(value, Prop):
                     val = value
