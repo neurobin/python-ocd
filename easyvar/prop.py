@@ -1,14 +1,17 @@
-"""This module provides functionality related to property, like automatic property creation.
+"""This module provides functionality related to property, like
+automatic property creation.
 
-* Provides some functions to make getter and setter functions for various purposes.
-* Provides Mixin classes to automatically create properties (with default values if given).
-
--------------------------------------------------------------------
-Copyright: Md. Jahidul Hamid <jahidulhamid@yahoo.com>
-
-License: [BSD](http://www.opensource.org/licenses/bsd-license.php)
--------------------------------------------------------------------
+* Provides some functions to make getter and setter functions for
+  various purposes.
+* Provides Metaclass for Mixin classes that can be used to
+  automatically create properties (with default values if given).
 """
+
+__author__ = 'Md Jahidul Hamid <jahidulhamid@yahoo.com>'
+__copyright__ = 'Copyright © Md Jahidul Hamid <https://github.com/neurobin/>'
+__license__ = '[BSD](http://www.opensource.org/licenses/bsd-license.php)'
+__version__ = '0.0.4'
+
 
 from abc import ABCMeta
 from copy import deepcopy
@@ -19,7 +22,8 @@ from easyvar import abc
 
 
 def make_fget(name, var_name, default=Void):
-    """Return a function compatible with `property()` function `fget` parameter
+    """Return a function compatible with `property()` function `fget`
+    parameter
 
     Args:
         name (str): name of the property
@@ -35,12 +39,14 @@ def make_fget(name, var_name, default=Void):
     def fget(self):
         v = getattr(self, var_name, default)
         if v is Void:
-            raise AttributeError("Property '%s' is not set yet for %r" % (name, self,))
+            raise AttributeError("Property '%s' is not set yet for %r"
+                                 % (name, self,))
         return v
     return fget
 
 def make_fget_const(name, v):
-    """Make a getter for `property()` function `fget` param that returns a constant value.
+    """Make a getter for `property()` function `fget` param that
+    returns a constant value.
 
     Args:
         name (str): name of the property
@@ -54,12 +60,15 @@ def make_fget_const(name, v):
     """
     def fget(self):
         if v is Void:
-            raise AttributeError("The value of property '%s' is non-existent for %r. It can neither be read nor be written." % (name,self,))
+            raise AttributeError("The value of property '%s' is non-existent "
+                                 "for %r. It can neither be read nor be "
+                                 "written." % (name,self,))
         return v
     return fget
 
 def make_fset(name, var_name):
-    """Make a setter for `property()`'s `fset` param for property name and internal variable name
+    """Make a setter for `property()`'s `fset` param for property name
+    and internal variable name
 
     Args:
         name (str): property name
@@ -73,7 +82,8 @@ def make_fset(name, var_name):
     return fset
 
 def make_nofset(name):
-    """Make a setter for `property()`'s `fset` param that raises `AttributeError`
+    """Make a setter for `property()`'s `fset` param that raises
+    `AttributeError`
 
     Args:
         name (str): property name
@@ -85,7 +95,8 @@ def make_nofset(name):
         function: A setter function
     """
     def fset(self, value):
-        raise AttributeError("'%s' is a readonly property for %r" % (name, self,))
+        raise AttributeError("'%s' is a readonly property for %r"
+                             % (name, self,))
     return fset
 
 def make_fdel(name, var_name=None):
@@ -102,11 +113,13 @@ def make_fdel(name, var_name=None):
         if var_name:
             delattr(self, var_name)
         else:
-            raise AttributeError("Constant readonly property '%s' can not be deleted by %r" % (name, self,))
+            raise AttributeError("Constant readonly property '%s' can not be "
+                                 "deleted by %r" % (name, self,))
     return fdel
 
 def make_nofdel(name):
-    """Make a deleter for `property()`'s `fdel` param that raises `AttributeError`
+    """Make a deleter for `property()`'s `fdel` param that raises
+    `AttributeError`
 
     Args:
         name (str): property name
@@ -118,7 +131,8 @@ def make_nofdel(name):
         function: A deleter function
     """
     def fdel(self):
-        raise AttributeError("Property '%s' is not deletable by %r" % (name, self,))
+        raise AttributeError("Property '%s' is not deletable by %r"
+                             % (name, self,))
     return fdel
 
 
