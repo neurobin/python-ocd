@@ -40,5 +40,5 @@ setup(name="easyvar",
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
       ],
-      install_requires=[],
+      install_requires=['packaging'],
 test_suite="easyvar.test.test")
