@@ -12,32 +12,37 @@ import copy
 import uuid
 
 
-def shallowcopy(obj):
+def copy_class(cls):
+    """Return a shallow copy version of class `cls`
+
+    Args:
+        cls (class): class that needs to be copied.
+    """
+    class_name = '_%s_%s' % (cls.__name__, str(uuid.uuid4()).replace('-', '_'))
+    new_bases = cls.__bases__
+    new_attrs = dict(cls.__dict__)
+    return type(class_name, new_bases, new_attrs)
+
+def copy_shallow(obj):
     """Return a shallow copy version of obj where obj can be a class.
 
     Args:
         obj (any): object that needs to be copied.
     """
     if inspect.isclass(obj):
-        class_name = 'NewClass_' + str(uuid.uuid4()).replace('-', '_')
-        new_bases = obj.__bases__
-        new_attrs = dict(obj.__dict__)
-        return type(class_name, new_bases, new_attrs)
+        return copy_class(obj)
     else:
         return copy.copy(obj)
 
-
-def semideepcopy(obj):
-    """Return a deep copy version of obj if obj is not a class,
-    otherwise return a shallow copy for class itself.
+def copy_semideep(obj):
+    """Return a deep copy version of obj by calling copy.deepcopy if
+    obj is not a class, otherwise return a shallow copy for class
+    itself.
 
     Args:
         obj (any): object that needs to be copied.
     """
     if inspect.isclass(obj):
-        class_name = 'NewClass_' + str(uuid.uuid4()).replace('-', '_')
-        new_bases = obj.__bases__
-        new_attrs = dict(obj.__dict__)
-        return type(class_name, new_bases, new_attrs)
+        return copy_class(obj)
     else:
         return copy.deepcopy(obj)

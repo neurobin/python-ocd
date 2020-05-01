@@ -4,7 +4,7 @@ import copy
 import inspect
 
 from easyvar import unro
-from easyvar.utils import semideepcopy
+from easyvar.utils import copy_semideep
 
 class Test_unro(unittest.TestCase):
     def setUp(self):
@@ -129,12 +129,12 @@ class Test_unro(unittest.TestCase):
         self._readonly_map_test(E())
 
     def _unro_test(self, obj):
-        self._undead_test(semideepcopy(obj))
-        self._readonly_test(semideepcopy(obj))
+        self._undead_test(copy_semideep(obj))
+        self._readonly_test(copy_semideep(obj))
 
     def _unro_map_test(self, obj):
-        self._readonly_map_test(semideepcopy(obj))
-        self._undead_map_test(semideepcopy(obj))
+        self._readonly_map_test(copy_semideep(obj))
+        self._undead_map_test(copy_semideep(obj))
 
     def test_unro(self):
         # class unro
