@@ -14,34 +14,148 @@ import warnings
 import functools
 from packaging import version
 
+
+class UnsupportedWarning(DeprecationWarning):
+    def __init__(self, msg):
+        self.message = msg
+        super(UnsupportedWarning, self).__init__()
+
+    def __str__(self):
+        msg = self.message
+        return msg
+
+
+class DeprecatedWarning(DeprecationWarning):
+    def __init__(self, msg):
+        self.message = msg
+        super(DeprecatedWarning, self).__init__()
+
+    def __str__(self):
+        msg = self.message
+        return msg
+
+
+class DepWrapper(object):
+    STATUS_OK = 0
+    STATUS_DEPRECATED = 1
+    STATUS_UNSUPPORTED = 2
+
+    def __init__(self, func,
+                me='',
+                by='',
+                ver_cur='',
+                ver_dep='',
+                ver_end='',
+                msg_dep='',
+                msg_end='',
+                warning_filter='default',
+                stacklevel=2):
+        self.func_callable = True
+        if not callable(func):
+            self.func_callable = False
+            if not me:
+                raise ValueError("If a non-callable is being deprecated, you "
+                                 "must pass the name of the object using the "
+                                 "'me' parameter to the deprecate call.")
+        self.me = me if me else repr(func) # guarded by above raise
+        self.func = func
+        self.by = by
+        self.ver_cur = ver_cur
+        self.ver_dep = ver_dep
+        self.ver_end = ver_end
+        self.msg_dep = msg_dep
+        self.msg_end = msg_end
+        self.warning_filter = warning_filter
+        self.stacklevel = stacklevel
+        (_ver_cur,
+        _ver_dep,
+        _ver_end) = (version.parse(x)
+                        if x and isinstance(x, str)
+                        else x
+                        for x in (ver_cur, ver_dep, ver_end))
+        self.status = self.STATUS_OK
+        if _ver_end and _ver_cur >= _ver_end:
+            self.status = self.STATUS_UNSUPPORTED
+        elif _ver_cur >= _ver_dep:
+            self.status = self.STATUS_DEPRECATED
+
+    def get_deprecation_msg(self):
+        # only called when status is not OK
+        # thus this check is redundant
+        # if self.status == self.STATUS_OK:
+        #     return ''
+        if self.by:
+            self.by = " by `%s`" % (self.by,)
+        if self.ver_dep:
+            self.ver_dep = " from version `%s`" % (self.ver_dep,)
+        if self.ver_cur:
+            self.ver_cur = ". Current version `%s`" % (self.ver_cur,)
+        if self.status == self.STATUS_UNSUPPORTED:
+            self.me = "`%s` was deprecated" % (self.me,)
+            if self.ver_end:
+                self.ver_end = " and planned to be removed in version"\
+                                   " `%s`" % (self.ver_end,)
+            msg = ''.join((self.me, self.by, self.ver_dep, self.ver_end,
+                                                         self.ver_cur))
+            return UnsupportedWarning(msg)
+        else:
+            self.me = "`%s` is deprecated" % (self.me,)
+            if self.ver_end:
+                self.ver_end = " and will be removed in version `%s`"\
+                                % (self.ver_end,)
+
+        msg = ''.join((self.me, self.by, self.ver_dep, self.ver_end,
+                                                         self.ver_cur))
+        return DeprecatedWarning(msg)
+
+    def get_deprecation_function(self):
+        if self.status == self.STATUS_OK:
+            return self.func # no decoration
+        # decoration needs to be done
+        # get the message
+        wrn = self.get_deprecation_msg()
+        @functools.wraps(self.func)
+        def wrapper(*args, **kwargs):
+            warnings.simplefilter(self.warning_filter, wrn.__class__)
+            warnings.warn(wrn,
+                        # category=wrn.__class__, # category is ignored
+                        # when message is a Warning instance
+                        # category is set to wrn.__class__ by default
+                        stacklevel=self.stacklevel)
+            return self.func(*args, **kwargs)
+        return wrapper
+
+    def get_deprecation_wrapper(self):
+        if self.func_callable:
+            return self.get_deprecation_function()
+        else:
+            raise NotImplementedError("decorating a non callable is not"
+                                        " supported yet.")
+
+    def get_wrapper(self):
+        return self.get_deprecation_wrapper()
+
+
+
+
+
 def deprecate(_func=None, *,
               me='',
               by='',
               ver_cur='',
               ver_dep='',
               ver_end='',
-              msg_format="`%s` is deprecated by `%s` from version `%s` and "
-                         "will be removed in version `%s`. Current version:"
-                         " `%s`"
+              msg_dep='',
+              msg_end='',
+              warning_filter='default',
+              stacklevel=2,
               ):
-    _ver_cur = version.parse(ver_cur)
-    _ver_dep = version.parse(ver_dep)
-    _ver_end = version.parse(ver_end)
     def deprecator(func):
-        _me = me
-        if not _me:
-            _me = repr(func)
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            if _ver_cur >= _ver_dep:
-                warnings.simplefilter('default', DeprecationWarning)
-                warnings.warn(msg_format % (_me, by, ver_dep, ver_end, ver_cur),
-                            category=DeprecationWarning,
-                            stacklevel=2)
-            elif _ver_cur >= _ver_end:
-                raise NotImplementedError
-            return func(*args, **kwargs)
-        return wrapper
-    if _func is None:
+        wrapper = DepWrapper(func, me=me, by=by,ver_cur=ver_cur,
+                            ver_dep=ver_dep, ver_end=ver_end, msg_dep=msg_dep,
+                            msg_end=msg_end, warning_filter=warning_filter,
+                            stacklevel=stacklevel)
+        return wrapper.get_wrapper()
+    if _func:
         return deprecator(_func)
     return deprecator
