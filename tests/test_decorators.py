@@ -1,6 +1,6 @@
 
 import unittest
-from easyvar import decorators as dcr
+from easyvar.decorators import deprecate, raiseUnsupportedWarning
 import inspect
 
 class Test_decorators(unittest.TestCase):
@@ -12,9 +12,10 @@ class Test_decorators(unittest.TestCase):
         # destruct
         pass
 
+    @raiseUnsupportedWarning
     def test_deprecated(self):
         me = self.tearDown
-        @dcr.deprecate(by='fun2', ver_cur='1.3', ver_dep='1.3', ver_end='1.3')
+        @deprecate(by='fun2', ver_cur='1.3', ver_dep='1.3', ver_end='1.5')
         def fun(a, b=3):
             """[summary]
 
@@ -28,9 +29,14 @@ class Test_decorators(unittest.TestCase):
             pass
 
         fun(2, 3)
+
+        @deprecate(by='fun2', ver_cur='1.3', ver_dep='1.3', ver_end='1.4')
+        def fun2(a, b=3):
+            print(a, b)
+
         # print(inspect.getsource(fun))
         # var = 3
-        # @dcr.deprecated
+        # @deprecated
         # var
 
         # class M():
