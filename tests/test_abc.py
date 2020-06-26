@@ -1,8 +1,8 @@
 
 import unittest
 
-from easyvar import abc
-from easyvar.prop import Prop
+from ocd import abc
+from ocd.prop import Prop
 
 class Test_abc(unittest.TestCase):
     def setUp(self):

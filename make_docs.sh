@@ -1,13 +1,13 @@
 #!/bin/bash
 
 docs=(
-    'easyvar.prop'
-    'easyvar.mixins'
-    'easyvar.types'
-    'easyvar.defaults'
-    'easyvar.unro'
-    'easyvar.utils'
-    'easyvar.abc'
+    'ocd.prop'
+    'ocd.mixins'
+    'ocd.types'
+    'ocd.defaults'
+    'ocd.unro'
+    'ocd.utils'
+    'ocd.abc'
 )
 
 print_chars(){

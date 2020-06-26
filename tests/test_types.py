@@ -2,7 +2,7 @@
 import unittest
 import copy
 
-from easyvar.types import SingletonMeta, VoidType, Void
+from ocd.types import SingletonMeta, VoidType, Void
 
 class Test_Types(unittest.TestCase):
     def setUp(self):

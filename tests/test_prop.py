@@ -1,9 +1,9 @@
 
 import unittest
 
-from easyvar.prop import Prop
-from easyvar.mixins import PropMixin
-from easyvar import Void
+from ocd.prop import Prop
+from ocd.mixins import PropMixin
+from ocd import Void
 
 class Test_module_prop(unittest.TestCase):
     def setUp(self):

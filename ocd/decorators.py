@@ -8,5 +8,5 @@ __license__ = '[BSD](http://www.opensource.org/licenses/bsd-license.php)'
 __version__ = '0.0.1'
 
 
-from easyvar.deprecate import deprecate
-from easyvar.deprecate import raiseUnsupportedWarning
+from ocd.deprecate import deprecate
+from ocd.deprecate import raiseUnsupportedWarning

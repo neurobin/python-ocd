@@ -3,8 +3,8 @@ import unittest
 import copy
 import inspect
 
-from easyvar import unro
-from easyvar.utils import copy_semideep
+from ocd import unro
+from ocd.utils import copy_semideep
 
 class Test_unro(unittest.TestCase):
     def setUp(self):

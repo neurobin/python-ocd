@@ -7,8 +7,8 @@ __license__ = '[BSD](http://www.opensource.org/licenses/bsd-license.php)'
 __version__ = '0.0.4'
 
 
-from easyvar import abc
-from easyvar import prop
+from ocd import abc
+from ocd import prop
 
 
 def nomodify(value):
@@ -42,7 +42,7 @@ class VarConfAll(abc.VarConf):
     start with an undersocore '_' to properties with default
     configuration `Prop()`.
 
-    To see the defaults, see class `easyvar.prop.Prop`
+    To see the defaults, see class `ocd.prop.Prop`
     """
 
     def get_conf(self, name, value):

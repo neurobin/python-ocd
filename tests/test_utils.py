@@ -1,7 +1,7 @@
 
 import unittest
 
-from easyvar import utils
+from ocd import utils
 
 class Test_utils(unittest.TestCase):
     def setUp(self):

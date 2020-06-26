@@ -1,7 +1,7 @@
 
 import unittest
 
-from easyvar.version import __version__
+from ocd.version import __version__
 
 class Test_version(unittest.TestCase):
     def setUp(self):

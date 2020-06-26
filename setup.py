@@ -5,7 +5,7 @@ import sys
 from codecs import open
 from setuptools import setup
 
-sys.path[0:0] = ['easyvar']
+sys.path[0:0] = ['ocd']
 
 from version import __version__
 
@@ -18,15 +18,15 @@ def get_readme(filename):
         pass
     return content
 
-setup(name="easyvar",
+setup(name="ocd",
       version=__version__,
       author="Md. Jahidul Hamid",
       author_email="jahidulhamid@yahoo.com",
       description="Convert class attributes to properties easily and automatically and more",
       license="BSD",
       keywords="property auto attributes",
-      url="https://github.com/neurobin/python-easyvar",
-      packages=["easyvar"],
+      url="https://github.com/neurobin/python-ocd",
+      packages=["ocd"],
       long_description=get_readme("README.md"),
       long_description_content_type="text/markdown",
       classifiers=[
@@ -41,4 +41,4 @@ setup(name="easyvar",
         'Programming Language :: Python :: 3',
       ],
       install_requires=['packaging'],
-test_suite="easyvar.test.test")
+test_suite="ocd.test.test")

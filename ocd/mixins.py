@@ -7,8 +7,8 @@ __license__ = '[BSD](http://www.opensource.org/licenses/bsd-license.php)'
 __version__ = '0.0.4'
 
 
-from easyvar import defaults
-from easyvar.prop import PropMeta
+from ocd import defaults
+from ocd.prop import PropMeta
 
 
 class PropMixin(metaclass=PropMeta):

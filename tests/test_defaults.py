@@ -1,8 +1,8 @@
 
 import unittest
 
-from easyvar import defaults
-from easyvar.prop import Prop
+from ocd import defaults
+from ocd.prop import Prop
 
 class Test_defaults(unittest.TestCase):
     def setUp(self):

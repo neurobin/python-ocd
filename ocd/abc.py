@@ -16,8 +16,8 @@ class VarConf():
 
     If you want automatic property configuration, create a class named
     `VarConf` in your `PropMixin` subclass and make your `VarConf`
-    class inherit from `easyvar.abc.VarConf` or a default `VarConf`
-    class from `easyvar.defaults` and implement the `get_conf` method
+    class inherit from `ocd.abc.VarConf` or a default `VarConf`
+    class from `ocd.defaults` and implement the `get_conf` method
     to either return a `Prop` object for property conversion to happen
     for the corresponding attribute name or return `None` if no
     conversion is desired.
@@ -42,4 +42,4 @@ class VarConf():
         raise NotImplementedError("`VarConf` class must define a "
                                   "method `get_conf` that returns "
                                   "`Prop` object or `None`. See "
-                                  "`easyvar.abc.VarConf`")
+                                  "`ocd.abc.VarConf`")

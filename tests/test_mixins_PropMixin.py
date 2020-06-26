@@ -1,9 +1,9 @@
 
 import unittest
 
-from easyvar.prop import Prop
-from easyvar.mixins import PropMixin
-from easyvar.defaults import VarConfNone, VarConfAll
+from ocd.prop import Prop
+from ocd.mixins import PropMixin
+from ocd.defaults import VarConfNone, VarConfAll
 
 class Test_mixins_PropMixin(unittest.TestCase):
     def setUp(self):

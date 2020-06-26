@@ -16,9 +16,9 @@ __version__ = '0.0.4'
 from abc import ABCMeta
 from copy import deepcopy
 
-from easyvar import Void
-from easyvar.unro import ClassReadonly, Unro
-from easyvar import abc
+from ocd import Void
+from ocd.unro import ClassReadonly, Unro
+from ocd import abc
 
 
 def make_fget(name, var_name, default=Void):
@@ -530,7 +530,7 @@ class PropMeta(ABCMeta):
         except:
             raise TypeError("'VarConf' is a reserved attribute name. It must "
                             "be a class that inherits and implements "
-                            "`easyvar.abc.VarConf`.")
+                            "`ocd.abc.VarConf`.")
         if isinstance(var_conf, abc.VarConf): # must do this check
             # because if some other class implementation provide
             # get_conf method with name/value arg,
@@ -539,18 +539,18 @@ class PropMeta(ABCMeta):
                 p = var_conf.get_conf(name, value)
             except:
                 raise TypeError("Bad implementation of `VarConf` class. See "
-                                "`easyvar.abc.VarConf`")
+                                "`ocd.abc.VarConf`")
         else:
             raise TypeError("'VarConf' is a reserved attribute name. It must "
                             "be a class that inherits and implements "
-                            "`easyvar.abc.VarConf`.")
+                            "`ocd.abc.VarConf`.")
         assert p is None or isinstance(p, Prop), "return value from "\
                                                  "'get_conf' in class "\
                                                  "'VarConf' inside class "\
                                                  "'%r' needs to either "\
                                                  "return `None` or a `Prop`"\
                                                  " object. See example in "\
-                                                 "`easyvar.abc.VarConf`"\
+                                                 "`ocd.abc.VarConf`"\
                                                  % (self.__class__,)
         return p
 

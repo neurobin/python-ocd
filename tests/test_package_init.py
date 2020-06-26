@@ -13,7 +13,7 @@ class Test_Package(unittest.TestCase):
         pass
     
     def test_imports(self):
-        from easyvar import Void
+        from ocd import Void
 
 
 
