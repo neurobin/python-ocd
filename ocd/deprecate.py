@@ -59,10 +59,13 @@ class DepWrapper(object):
                         else x
                         for x in (ver_cur, ver_dep, ver_end))
         self.status = self.STATUS_OK
-        if _ver_end and _ver_cur >= _ver_end:
-            self.status = self.STATUS_UNSUPPORTED
-        elif _ver_cur >= _ver_dep:
-            self.status = self.STATUS_DEPRECATED
+        try:
+            if _ver_end and _ver_cur >= _ver_end:
+                self.status = self.STATUS_UNSUPPORTED
+            elif _ver_cur >= _ver_dep:
+                self.status = self.STATUS_DEPRECATED
+        except TypeError:
+            raise ValueError("Either none or all of ver_cur, ver_dep and ver_end needs to be given.")
 
     def get_deprecation_warning_config(self):
         # only called when status is not OK

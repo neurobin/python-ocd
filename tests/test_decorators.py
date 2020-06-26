@@ -1,6 +1,6 @@
 
 import unittest
-from ocd.decorators import deprecate, raiseUnsupportedWarning
+from ocd.deprecate import deprecate, raiseUnsupportedWarning
 import inspect
 
 class Test_decorators(unittest.TestCase):
@@ -32,7 +32,7 @@ class Test_decorators(unittest.TestCase):
         fun(2, 3)
         fun(2, 3)
 
-        @deprecate
+        @deprecate(ver_end='1.0')
         def fun2(a, b=3):
             print(a, b)
 
