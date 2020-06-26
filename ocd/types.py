@@ -1,4 +1,4 @@
-"""Our custom types are defined here.
+"""Custom types.
 """
 
 __author__ = 'Md Jahidul Hamid <jahidulhamid@yahoo.com>'
@@ -8,6 +8,9 @@ __version__ = '0.0.1'
 
 
 class SingletonMeta(type):
+    """A metaclass to make singleton classes that can have only one
+    instance.
+    """
     _instances = {}
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:

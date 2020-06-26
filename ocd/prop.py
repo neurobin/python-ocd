@@ -1,5 +1,4 @@
-"""This module provides functionality related to property, like
-automatic property creation.
+"""Automatic property creation.
 
 * Provides some functions to make getter and setter functions for
   various purposes.

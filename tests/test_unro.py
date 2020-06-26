@@ -19,7 +19,7 @@ class Test_unro(unittest.TestCase):
         pass
 
     def test_Base(self):
-        class B(unro.Base):
+        class B(unro._Base):
             a = 2
             b = 3
             c = 4
@@ -35,7 +35,7 @@ class Test_unro(unittest.TestCase):
             print("Printing attribute name: ", attribute_name)
 
     def test_Map(self):
-        class B(unro.Map):
+        class B(unro._Map):
             a = 2
             b = 3
             c = 4

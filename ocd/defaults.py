@@ -1,4 +1,4 @@
-"""Default values for various objects
+"""Default classes and methods
 """
 
 __author__ = 'Md Jahidul Hamid <jahidulhamid@yahoo.com>'

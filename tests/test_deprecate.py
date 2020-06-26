@@ -15,7 +15,7 @@ class Test_decorators(unittest.TestCase):
 
     @raiseUnsupportedWarning
     def test_deprecated(self):
-        @deprecate(by='fun2', ver_cur='1.3', ver_dep='1.3', ver_end='1.4')
+        @deprecate(by='fun2', ver_cur='1.3', ver_dep='1.3', ver_eol='1.4')
         def fun(a, b=3):
             pass
 
@@ -28,11 +28,11 @@ class Test_decorators(unittest.TestCase):
 
 
         with self.assertRaises(ValueError):
-            @deprecate(ver_end='1.0')
+            @deprecate(ver_eol='1.0')
             def fun2(a, b=3):pass
             fun2(4)
 
-        @deprecate(me='fun3', by='fun2', ver_cur='1.3', ver_dep='1.3', ver_end='1.3')
+        @deprecate(me='fun3', by='fun2', ver_cur='1.3', ver_dep='1.3', ver_eol='1.3')
         def fun3(a, b=3):
             pass
 
@@ -40,14 +40,14 @@ class Test_decorators(unittest.TestCase):
             fun3(2)
 
 
-        @deprecate(by='fun2', ver_cur='1.3', ver_dep='1.3', ver_end='1.5', msg_dep="dep")
+        @deprecate(by='fun2', ver_cur='1.3', ver_dep='1.3', ver_eol='1.5', msg_dep="dep")
         def fun4(a, b=3):
             pass
         fun4(3)
 
     def test_no_raise_UnsupportedWarning(self):
 
-        @deprecate(me='fun3', by='fun2', ver_cur='1.3', ver_dep='1.3', ver_end='1.3')
+        @deprecate(me='fun3', by='fun2', ver_cur='1.3', ver_dep='1.3', ver_eol='1.3')
         def fun3(a, b=3):
             pass
         fun3(2)

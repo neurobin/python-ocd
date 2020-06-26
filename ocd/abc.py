@@ -1,4 +1,4 @@
-"""Our abstract base classes.
+"""Abstract base classes.
 """
 
 __author__ = 'Md Jahidul Hamid <jahidulhamid@yahoo.com>'

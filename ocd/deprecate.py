@@ -5,7 +5,7 @@
 __author__ = 'Md Jahidul Hamid <jahidulhamid@yahoo.com>'
 __copyright__ = 'Copyright © Md Jahidul Hamid <https://github.com/neurobin/>'
 __license__ = '[BSD](http://www.opensource.org/licenses/bsd-license.php)'
-__version__ = '0.0.1'
+__version__ = '1.0.1'
 
 
 import inspect
@@ -18,7 +18,7 @@ from ocd.warnings import UnsupportedWarning
 from ocd.warnings import DeprecatedWarning
 
 
-class DepWrapper(object):
+class _DepWrapper(object):
     STATUS_OK = 0
     STATUS_DEPRECATED = 1
     STATUS_UNSUPPORTED = 2
@@ -28,7 +28,7 @@ class DepWrapper(object):
                 by='',
                 ver_cur='',
                 ver_dep='',
-                ver_end='',
+                ver_eol='',
                 msg_dep='',
                 msg_end='',
                 stacklevel=2):
@@ -44,7 +44,7 @@ class DepWrapper(object):
         self.by = by
         self.ver_cur = ver_cur
         self.ver_dep = ver_dep
-        self.ver_end = ver_end
+        self.ver_eol = ver_eol
         self.msg_dep = msg_dep
         self.msg_end = msg_end
         self.stacklevel = stacklevel
@@ -53,7 +53,7 @@ class DepWrapper(object):
         _ver_end) = (version.parse(x)
                         if x and isinstance(x, str)
                         else x
-                        for x in (ver_cur, ver_dep, ver_end))
+                        for x in (ver_cur, ver_dep, ver_eol))
         self.status = self.STATUS_OK
         try:
             if _ver_end and _ver_cur >= _ver_end:
@@ -61,7 +61,7 @@ class DepWrapper(object):
             elif _ver_cur >= _ver_dep:
                 self.status = self.STATUS_DEPRECATED
         except TypeError:
-            raise ValueError("Either none or all of ver_cur, ver_dep and ver_end needs to be given.")
+            raise ValueError("Either none or all of ver_cur, ver_dep and ver_eol needs to be given.")
 
     def get_deprecation_warning_config(self):
         # only called when status is not OK
@@ -77,10 +77,10 @@ class DepWrapper(object):
         if self.status == self.STATUS_UNSUPPORTED:
             if not self.msg_end and not self.msg_dep:
                 self.me = "`%s` was deprecated" % (self.me,)
-                if self.ver_end:
-                    self.ver_end = " and planned to be removed in version"\
-                                    " `%s`" % (self.ver_end,)
-                msg = ''.join((self.me, self.by, self.ver_dep, self.ver_end,
+                if self.ver_eol:
+                    self.ver_eol = " and planned to be removed in version"\
+                                    " `%s`" % (self.ver_eol,)
+                msg = ''.join((self.me, self.by, self.ver_dep, self.ver_eol,
                                                             self.ver_cur))
             else:
                 if self.msg_end:
@@ -91,10 +91,10 @@ class DepWrapper(object):
         else:
             if not self.msg_dep:
                 self.me = "`%s` is deprecated" % (self.me,)
-                if self.ver_end:
-                    self.ver_end = " and will be removed in version `%s`"\
-                                    % (self.ver_end,)
-                msg = ''.join((self.me, self.by, self.ver_dep, self.ver_end,
+                if self.ver_eol:
+                    self.ver_eol = " and will be removed in version `%s`"\
+                                    % (self.ver_eol,)
+                msg = ''.join((self.me, self.by, self.ver_dep, self.ver_eol,
                                                             self.ver_cur))
             else:
                 msg = self.msg_dep
@@ -132,13 +132,25 @@ def deprecate(_func=None, *,
               by='',
               ver_cur='',
               ver_dep='',
-              ver_end='',
+              ver_eol='',
               msg_dep='',
               msg_end='',
               stacklevel=2,
               ):
     """Deprecate a function or method in some future version. If no version
     restraint is provided, then it will be deprecated immediately.
+
+    Examples:
+
+    ```python
+    @deprecate(by='method2', ver_cur='1.0', ver_dep='2.0', ver_eol='3.0')
+    def method1(self):
+        return self.method2()
+
+    @deprecate # deprecate immediately
+    def method1(self):
+        return self.method2()
+    ```
 
     By default, the warning message will be composed like this:
 
@@ -153,14 +165,14 @@ def deprecate(_func=None, *,
         by (str, optional): Name of the function that should be used instead.
         ver_cur (str, optional): Current version.
         ver_dep (str, optional): Version to deprecate from.
-        ver_end (str, optional): Version when it will be marked unsupported.
+        ver_eol (str, optional): Version when it will be marked unsupported.
         msg_dep (str, optional): Custom message for deprecation (overrides the default).
         msg_end (str, optional): Custom message for unsupported warning (overrides the default).
         stacklevel (int, optional): . Defaults to 2.
     """
     def deprecator(func):
-        wrapper = DepWrapper(func, me=me, by=by,ver_cur=ver_cur,
-                            ver_dep=ver_dep, ver_end=ver_end, msg_dep=msg_dep,
+        wrapper = _DepWrapper(func, me=me, by=by,ver_cur=ver_cur,
+                            ver_dep=ver_dep, ver_eol=ver_eol, msg_dep=msg_dep,
                             msg_end=msg_end, stacklevel=stacklevel)
         return wrapper.get_wrapper()
     if _func:

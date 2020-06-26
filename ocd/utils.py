@@ -1,4 +1,4 @@
-"""Utility functions
+"""Utility functions.
 """
 
 __author__ = 'Md Jahidul Hamid <jahidulhamid@yahoo.com>'

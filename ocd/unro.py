@@ -1,7 +1,12 @@
-"""Defines different undead and readonly attribute classes.
+"""Undead and readonly attribute classes.
 
 Undead class attributes are non deletable and Readonly class attributes
 are readonly. Unro class attributes are both non deletable and readonly
+
+Two types of classes are to be found here:
+
+1. Attribute saving class that does not let you access the attributes as items
+2. Attribute mapping class that lets you access the attributes as items.
 """
 
 __author__ = 'Md Jahidul Hamid <jahidulhamid@yahoo.com>'
@@ -10,11 +15,11 @@ __license__ = '[BSD](http://www.opensource.org/licenses/bsd-license.php)'
 __version__ = '0.0.4'
 
 
-class Object(object):
+class _Object(object):
     """Base class for all."""
     pass
 
-class Base(Object):
+class _Base(_Object):
     """A class that saves attributes and lets you iter through them
     """
 
@@ -24,10 +29,10 @@ class Base(Object):
     def __iter__(self):
         return iter(self.__dict__)
 
-    __hash__ = Object.__hash__
+    __hash__ = _Object.__hash__
 
 
-class Map(Base):
+class _Map(_Base):
     """A map interface that stores items as attributes.
 
     It provides iter through keys. Values can be accessed as items or
@@ -53,7 +58,7 @@ class Map(Base):
 ##################### Some meta classes ###############################
 #######################################################################
 
-class UndeadMeta(type):
+class _UndeadMeta(type):
     """Metaclass that makes class attributes undead (not deletable)"""
 
     def __delattr__(self, name):
@@ -61,7 +66,7 @@ class UndeadMeta(type):
                             % (self))
 
 
-class UndeadMapMeta(UndeadMeta):
+class _UndeadMapMeta(_UndeadMeta):
     """Metaclass that makes class attributes undead (not deletable).
 
     Attributes are accessible as items.
@@ -71,13 +76,13 @@ class UndeadMapMeta(UndeadMeta):
         return self.__dict__[key]
 
     def __setitem__(self, key, value):
-        super(UndeadMapMeta, self).__setattr__(key, value)
+        super(_UndeadMapMeta, self).__setattr__(key, value)
 
     def __delitem__(self, key):
-        super(UndeadMapMeta, self).__delattr__(key)
+        super(_UndeadMapMeta, self).__delattr__(key)
 
 
-class ReadonlyMeta(type):
+class _ReadonlyMeta(type):
     """Metaclass that makes class attributes readonly"""
 
     def __setattr__(self, name, value):
@@ -85,10 +90,10 @@ class ReadonlyMeta(type):
             raise AttributeError("type(%r) allows setting one attribute just "
                                  "once." % (self))
         else:
-            super(ReadonlyMeta, self).__setattr__(name, value)
+            super(_ReadonlyMeta, self).__setattr__(name, value)
 
 
-class ReadonlyMapMeta(ReadonlyMeta):
+class _ReadonlyMapMeta(_ReadonlyMeta):
     """Metaclass that makes class attributes readonly where attributes
     are accessible as items.
     """
@@ -97,20 +102,20 @@ class ReadonlyMapMeta(ReadonlyMeta):
         return self.__dict__[key]
 
     def __setitem__(self, key, value):
-        super(ReadonlyMapMeta, self).__setattr__(key, value)
+        super(_ReadonlyMapMeta, self).__setattr__(key, value)
 
     def __delitem__(self, key):
-        super(ReadonlyMapMeta, self).__delattr__(key)
+        super(_ReadonlyMapMeta, self).__delattr__(key)
 
 
-class UnroMeta(UndeadMeta, ReadonlyMeta):
+class _UnroMeta(_UndeadMeta, _ReadonlyMeta):
     """Metaclass that makes attributes undead (not deletable) and
     readonly
     """
     pass
 
 
-class UnroMapMeta(UnroMeta):
+class _UnroMapMeta(_UnroMeta):
     """Metaclass that makes attributes undead (not deletable) and
     readonly where attributes are accessible as items.
     """
@@ -119,10 +124,10 @@ class UnroMapMeta(UnroMeta):
         return self.__dict__[key]
 
     def __setitem__(self, key, value):
-        super(UnroMapMeta, self).__setattr__(key, value)
+        super(_UnroMapMeta, self).__setattr__(key, value)
 
     def __delitem__(self, key):
-        super(UnroMapMeta, self).__delattr__(key)
+        super(_UnroMapMeta, self).__delattr__(key)
 
 #######################################################################
 
@@ -132,7 +137,7 @@ class UnroMapMeta(UnroMeta):
 #######################################################################
 
 
-class ClassReadonlyMap(Map, metaclass=ReadonlyMapMeta):
+class ClassReadonlyMap(_Map, metaclass=_ReadonlyMapMeta):
     """An attribute mapping class that lets you set one class attribute
     just once.
 
@@ -143,7 +148,7 @@ class ClassReadonlyMap(Map, metaclass=ReadonlyMapMeta):
     pass
 
 
-class ClassReadonly(Base, metaclass=ReadonlyMeta):
+class ClassReadonly(_Base, metaclass=_ReadonlyMeta):
     """An attribute saving class that lets you set one class attribute
     just once.
 
@@ -154,7 +159,7 @@ class ClassReadonly(Base, metaclass=ReadonlyMeta):
     pass
 
 
-class ClassUndeadMap(Map, metaclass=UndeadMapMeta):
+class ClassUndeadMap(_Map, metaclass=_UndeadMapMeta):
     """An attribute mapping class that lets you make undead class
     attributes that can not be killed.
 
@@ -165,7 +170,7 @@ class ClassUndeadMap(Map, metaclass=UndeadMapMeta):
     pass
 
 
-class ClassUndead(Base, metaclass=UndeadMeta):
+class ClassUndead(_Base, metaclass=_UndeadMeta):
     """An attribute saving class that lets you make undead class
     attributes that can not be killed.
 
@@ -176,7 +181,7 @@ class ClassUndead(Base, metaclass=UndeadMeta):
     pass
 
 
-class ClassUnro(Base, metaclass=UnroMeta):
+class ClassUnro(_Base, metaclass=_UnroMeta):
     """An attribute saving class that lets you make unro
     (undead + readonly) class attributes that can not be killed.
 
@@ -187,7 +192,7 @@ class ClassUnro(Base, metaclass=UnroMeta):
     pass
 
 
-class ClassUnroMap(Map, metaclass=UnroMapMeta):
+class ClassUnroMap(_Map, metaclass=_UnroMapMeta):
     """An attribute mapping class that lets you make unro
     (undead and readonly) class attributes that can not be killed.
 
@@ -206,7 +211,7 @@ class ClassUnroMap(Map, metaclass=UnroMapMeta):
 ### upon both class attributes and instance attributes ################
 #######################################################################
 
-class ReadonlyMap(Map, metaclass=ReadonlyMapMeta):
+class ReadonlyMap(_Map, metaclass=_ReadonlyMapMeta):
     """An attribute mapping class that lets you set one item/attribute
     just once.
 
@@ -224,7 +229,7 @@ class ReadonlyMap(Map, metaclass=ReadonlyMapMeta):
             super(ReadonlyMap, self).__setattr__(name, value)
 
 
-class Readonly(Base, metaclass=ReadonlyMeta):
+class Readonly(_Base, metaclass=_ReadonlyMeta):
     """An attribute saving class that lets you set one attribute just
     once.
 
@@ -242,7 +247,7 @@ class Readonly(Base, metaclass=ReadonlyMeta):
             super(Readonly, self).__setattr__(name, value)
 
 
-class UndeadMap(Map, metaclass=UndeadMapMeta):
+class UndeadMap(_Map, metaclass=_UndeadMapMeta):
     """An attribute mapping class that lets you make undead attributes
     that can not be killed.
 
@@ -254,7 +259,7 @@ class UndeadMap(Map, metaclass=UndeadMapMeta):
                              % (self.__class__))
 
 
-class Undead(Base, metaclass=UndeadMeta):
+class Undead(_Base, metaclass=_UndeadMeta):
     """An attribute saving class that lets you make undead attributes
     that can not be killed.
 
@@ -266,7 +271,7 @@ class Undead(Base, metaclass=UndeadMeta):
                              % (self.__class__))
 
 
-class Unro(Base, metaclass=UnroMeta):
+class Unro(_Base, metaclass=_UnroMeta):
     """An attribute saving class that lets you set one attribute just
     once.
 
@@ -288,7 +293,7 @@ class Unro(Base, metaclass=UnroMeta):
                              % (self.__class__))
 
 
-class UnroMap(Map, metaclass=UnroMapMeta):
+class UnroMap(_Map, metaclass=_UnroMapMeta):
     """An attribute mapping class that lets you set one attribute
     just once.
 
