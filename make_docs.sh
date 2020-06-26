@@ -1,13 +1,16 @@
 #!/bin/bash
 
 docs=(
-    'ocd.prop'
-    'ocd.mixins'
-    'ocd.types'
+    'ocd.abc'
     'ocd.defaults'
+    'ocd.deprecate'
+    'ocd.mixins'
+    'ocd.prop'
+    'ocd.types'
     'ocd.unro'
     'ocd.utils'
-    'ocd.abc'
+    'ocd.version'
+    'ocd.warnings'
 )
 
 print_chars(){

@@ -1,16 +1,16 @@
 #!/bin/bash
 
 tests=(
-    # 'tests.test_package_init'
-    # 'tests.test_prop'
-    # 'tests.test_abc'
-    # 'tests.test_types'
-    # 'tests.test_version'
-    # 'tests.test_defaults'
-    # 'tests.test_mixins_PropMixin'
-    # 'tests.test_unro'
-    # 'tests.test_utils'
-    'tests.test_decorators'
+    'tests.test_package_init'
+    'tests.test_prop'
+    'tests.test_abc'
+    'tests.test_types'
+    'tests.test_version'
+    'tests.test_defaults'
+    'tests.test_mixins_PropMixin'
+    'tests.test_unro'
+    'tests.test_utils'
+    'tests.test_deprecate'
 )
 
 print_chars(){
