@@ -149,3 +149,9 @@ def test_method1(self):
 ```
 
 You can find the detailed documentation at [https://docs.neurobin.org/ocd/latest/](https://docs.neurobin.org/ocd/latest/).
+
+# Install
+
+```bash
+pip install ocd
+```
