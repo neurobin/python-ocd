@@ -9,6 +9,7 @@ __version__ = '0.0.1'
 
 
 class UnsupportedWarning(DeprecationWarning):
+    """Base class for warnings about unsupported features."""
     def __init__(self, msg):
         self.message = msg
         super(UnsupportedWarning, self).__init__()
