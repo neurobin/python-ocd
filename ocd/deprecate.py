@@ -135,8 +135,7 @@ def deprecate(_func=None, *,
               ver_eol='',
               msg_dep='',
               msg_end='',
-              stacklevel=2,
-              ):
+              stacklevel=2):
     """Deprecate a function or method in some future version. If no version
     restraint is provided, then it will be deprecated immediately.
 
