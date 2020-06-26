@@ -4,7 +4,7 @@
 __author__ = 'Md Jahidul Hamid <jahidulhamid@yahoo.com>'
 __copyright__ = 'Copyright © Md Jahidul Hamid <https://github.com/neurobin/>'
 __license__ = '[BSD](http://www.opensource.org/licenses/bsd-license.php)'
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 
 from ocd import abc
@@ -38,7 +38,7 @@ class VarConfAll(abc.VarConf):
     """A `VarConf` class that implements `get_conf` method that always
     returns a `Prop` object with defaults.
 
-    This `VarConf` will convert all class attributes that does not
+    This `VarConf` will convert all class attributes that do not
     start with an undersocore '_' to properties with default
     configuration `Prop()`.
 
@@ -50,3 +50,19 @@ class VarConfAll(abc.VarConf):
         properties.
         """
         return prop.Prop()
+
+
+class VarConfAllUnro(abc.VarConf):
+    """A `VarConf` class that implements `get_conf` method that always
+    returns a `Prop` object with readonly=True and undead=True.
+
+    This `VarConf` will convert all class attributes that do not
+    start with an undersocore '_' to properties that can not be deleted
+    or changed.
+    """
+
+    def get_conf(self, name, value):
+        """Return `Prop()` i.e all public attributes will become
+        properties.
+        """
+        return prop.Prop(readonly=True, undead=True)

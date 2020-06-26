@@ -144,7 +144,7 @@ class PropMixin(metaclass=PropMeta):
 
     * We do not allow variables starting with an underscores to be
       converted to property.
-    * Variables with leading undersocore can store `Prop` class objects
+    * Variables with leading underscore can store `Prop` class objects
       without getting converted to property.
 
     """
