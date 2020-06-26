@@ -20,7 +20,11 @@ Defaults.WEAK = Defaults.STRONG
 
 With this single line of code, his goal will be accomplished but it's going to be catastrophic if he is not careful (which he is obviously not). This guy may later go to your issue page and open an issue saying that some part of your code is not working as expected.
 
-To mitigate this kind of scenario, your obsession might not be that bad of an idea. Now, introducing `ocd` aka <mark>Obsessive Coder's Data</mark> (The name comes from Obsessive Compulsive Disorder :D). Using `ocd` you can make your variables readonly, undeletable or both. They can be protected from class or class instances or both. Let's see one example:
+To mitigate this kind of scenario, your obsession might not be that bad of an idea. Now, introducing `ocd` aka <mark>Obsessive Coder's Day</mark> (made different from Obsessive Compulsive Disorder on purpose :D). Using `ocd` you can make your variables readonly, undeletable or both. They can be protected from class or class instances or both.
+
+# Auto property creation
+
+## Readonly property
 
 ```python
 class Defaults(PropMixin):
@@ -45,6 +49,8 @@ Defaults.WEAK = Defaults.STRONG # now it's OK
 
 and we have the following solution:
 
+## Undead property
+
 ```python
 class Defaults(PropMixin):
     STRONG = Prop(2, readonly=True, undead=True)
@@ -57,6 +63,8 @@ You just need to say, it's an undead property. This time, the monkey patching wi
 del Defaults.WEAK # exception, undead property can not be deleted
 Defaults.WEAK = Defaults.STRONG
 ```
+
+## More intuitive way to make readonly and undead properties
 
 You may think that writing `Prop(2, readonly=True, undead=True)` and just `2` is a big difference and it is. So, we have a solution for this:
 
@@ -82,11 +90,52 @@ class Defaults(PropMixin):
 
 As you can see, the `get_conf` method has two parameters: name (property name) and value (value of the property), thus, you can decide which one will be what kind of property according to their names and values. You can match names/values with a pattern and make them readonly, match with another pattern and make them non-readonly, or match with another pattern to make them both readonly and undead, etc.
 
-
-# Notes
+## Notes
 
 * We do not allow variables starting with an underscores to be converted to property.
 * Variables with leading underscore can store `Prop` class objects without getting converted to property.
 
+# Other access obsessions
+
+We have several classes to allow different level of obsessions over attribute access, for example:
+
+1. Should the attribute be changeable through class or class instance or both?
+2. Should the attribute be deletable through class or class instance or both?
+3. Should the attributes be allowed to be accessed as items (e.g `obj['name']` instead of `obj.name`)?
+
+You can check out these classes at [https://docs.neuzunix.com/ocd/latest/unro.html](https://docs.neuzunix.com/ocd/latest/unro.html)
+
+# Other obsessions
+
+## Deprecate in future
+
+So, you want to deprecate a function or method from version 2.0 and remove it in 3.0 and the current version is 1.0! No problem, you can obsess on your deprecation plan too:
+
+```python
+@deprecate(by='method2', ver_cur=package.__version__, ver_dep='2.0', ver_eol='3.0')
+def method1(self):
+    return self.method2()
+```
+
+When the version reaches 2.0, you will get a warning like this:
+
+```
+DeprecatedWarning: `<function method1 at 0x7faf2c362c10>` is deprecated by `method2` from version `2.0` and will be removed in version `3.0`. Current version: `1.0`.
+```
+
+and when the version reaches 3.0, you will get a warning like this:
+
+```
+UnsupportedWarning: `<function method1 at 0x7faf2c362c10>` was deprecated by `method2` from version `2.0` and planned to be removed in version `3.0`. Current version: `3.0`.
+```
+
+The unsupported warning is not that helpful, but you can raise this warning into error in your test suite and force yourself or your team to remove this deprecated method in the planned version. For that, you can use the `raiseUnsupportedWarning` decorator:
+
+```python
+    @raiseUnsupportedWarning
+    def test_method1(self):
+        # your test code
+        pass
+```
 
 You can find the detailed documentation at [https://docs.neurobin.org/ocd/lates/](https://docs.neurobin.org/ocd/lates/).

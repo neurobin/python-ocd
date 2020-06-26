@@ -152,10 +152,16 @@ def deprecate(_func=None, *,
         return self.method2()
     ```
 
-    By default, the warning message will be composed like this:
+    By default, the deprecation warning message will be composed like this:
 
     ```
-    DeprecatedWarning: `<function fun at 0x7faf2c362c10>` is deprecated by `fun2` from version `1.3` and will be removed in version `1.4`. Current version: `1.3`.
+    DeprecatedWarning: `<function method1 at 0x7faf2c362c10>` is deprecated by `method2` from version `2.0` and will be removed in version `3.0`. Current version: `1.0`.
+    ```
+
+    and the unsupported warning message will be like this:
+
+    ```
+    UnsupportedWarning: `<function method1 at 0x7faf2c362c10>` was deprecated by `method2` from version `2.0` and planned to be removed in version `3.0`. Current version: `3.0`.
     ```
 
     Details can be provided with the following arguments:

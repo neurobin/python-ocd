@@ -62,7 +62,7 @@ class VarConfAllUnro(abc.VarConf):
     """
 
     def get_conf(self, name, value):
-        """Return `Prop()` i.e all public attributes will become
-        properties.
+        """Return `Prop(readonly=True, undead=True)` i.e all public
+        attributes will become readonly, undead properties.
         """
         return prop.Prop(readonly=True, undead=True)
