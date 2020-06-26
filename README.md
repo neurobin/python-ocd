@@ -2,7 +2,7 @@
 
 Do you come from a C++ background? Are you very fond of the popular access modifiers such as `public`, `private`, `protected` etc? Do you worry that some of your python programs will be used by new pythonists and they will abuse your private variables?
 
-Well, veteran pythonists will tell you that, this behavior is over-obsessive and programmers in the python world are all adult people (which is true). In python, you don't usually worry about public or private, instead, you think of internal variables and follow a convention: use a single leading underscore for internal variables (e.g `_varname`) and two leading underscores if you want name mangling inside a class (e.g `__varname`). This does not make them protected or private, but python programmers will know whether they are internal, from the leading underscore.
+Well, veteran pythonists will tell you, that, this behavior is over-obsessive and programmers in the python world are all adult people (which is true). In python, you don't usually worry about public or private, instead, you think of internal variables and follow a convention: use a single leading underscore for internal variables (e.g `_varname`) and two leading underscores if you want name mangling inside a class (e.g `__varname`). This does not make them protected or private, but python programmers will know whether they are internal, from the leading underscore.
 
 Now, some people may still want to protect some of their variables from unknown changes, make them readonly, undeletable, etc. For example:
 
@@ -27,6 +27,9 @@ To mitigate this kind of scenario, your obsession might not be that bad of an id
 ## Readonly property
 
 ```python
+from ocd.prop import Prop
+from ocd.mixins import PropMixin
+
 class Defaults(PropMixin):
     STRONG = Prop(2, readonly=True)
     WEAK =  Prop(1, readonly=True)
@@ -69,6 +72,8 @@ Defaults.WEAK = Defaults.STRONG
 You may think that writing `Prop(2, readonly=True, undead=True)` and just `2` is a big difference and it is. So, we have a solution for this:
 
 ```python
+from ocd import defaults
+
 class Defaults(PropMixin):
     VarConf = defaults.VarConfAllUnro
 
@@ -112,6 +117,8 @@ You can check out these classes at [https://docs.neurobin.org/ocd/latest/unro.ht
 So, you want to deprecate a function or method from version 2.0 and remove it in 3.0 and the current version is 1.0! No problem, you can obsess on your deprecation plan too:
 
 ```python
+from ocd.deprecate import deprecate
+
 @deprecate(by='method2', ver_cur=package.__version__, ver_dep='2.0', ver_eol='3.0')
 def method1(self):
     return self.method2()
@@ -132,10 +139,12 @@ UnsupportedWarning: `<function method1 at 0x7faf2c362c10>` was deprecated by `me
 The unsupported warning is not that helpful, but you can raise this warning into error in your test suite and force yourself or your team to remove this deprecated method in the planned version. For that, you can use the `raiseUnsupportedWarning` decorator:
 
 ```python
-    @raiseUnsupportedWarning
-    def test_method1(self):
-        # your test code
-        pass
+from ocd.deprecate import raiseUnsupportedWarning
+
+@raiseUnsupportedWarning
+def test_method1(self):
+    # your test code
+    pass
 ```
 
 You can find the detailed documentation at [https://docs.neurobin.org/ocd/lates/](https://docs.neurobin.org/ocd/latest/).
