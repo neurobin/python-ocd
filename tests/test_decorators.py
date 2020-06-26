@@ -1,6 +1,7 @@
 
 import unittest
 from ocd.deprecate import deprecate, raiseUnsupportedWarning
+from ocd.warnings import DeprecatedWarning, UnsupportedWarning
 import inspect
 
 class Test_decorators(unittest.TestCase):
@@ -14,37 +15,42 @@ class Test_decorators(unittest.TestCase):
 
     @raiseUnsupportedWarning
     def test_deprecated(self):
-        me = self.tearDown
         @deprecate(by='fun2', ver_cur='1.3', ver_dep='1.3', ver_end='1.4')
         def fun(a, b=3):
-            """[summary]
-
-            [extended_summary]
-
-            Args:
-                self ([type]): [description]
-                b (int, optional): [description]. Defaults to 3.
-            """
-            print(a, b)
             pass
 
-        fun(2, 3)
-        fun(2, 3)
-        fun(2, 3)
+        with self.assertWarns(DeprecatedWarning):
+            fun(2, 3)
+        with self.assertWarns(DeprecatedWarning):
+            fun(2, 3)
+        with self.assertWarns(DeprecatedWarning):
+            fun(2, 3)
 
-        @deprecate(ver_end='1.0')
-        def fun2(a, b=3):
-            print(a, b)
 
-        fun2(4)
-        # print(inspect.getsource(fun))
-        # var = 3
-        # @deprecated
-        # var
+        with self.assertRaises(ValueError):
+            @deprecate(ver_end='1.0')
+            def fun2(a, b=3):pass
+            fun2(4)
 
-        # class M():
-        #     x = Descriptor('x', 5)
-        # print(str(M.x))
+        @deprecate(me='fun3', by='fun2', ver_cur='1.3', ver_dep='1.3', ver_end='1.3')
+        def fun3(a, b=3):
+            pass
+
+        with self.assertRaises(UnsupportedWarning):
+            fun3(2)
+
+
+        @deprecate(by='fun2', ver_cur='1.3', ver_dep='1.3', ver_end='1.5', msg_dep="dep")
+        def fun4(a, b=3):
+            pass
+        fun4(3)
+
+    def test_no_raise_UnsupportedWarning(self):
+
+        @deprecate(me='fun3', by='fun2', ver_cur='1.3', ver_dep='1.3', ver_end='1.3')
+        def fun3(a, b=3):
+            pass
+        fun3(2)
 
 
 

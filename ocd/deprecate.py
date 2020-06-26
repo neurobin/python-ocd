@@ -31,8 +31,6 @@ class DepWrapper(object):
                 ver_end='',
                 msg_dep='',
                 msg_end='',
-                do_at_dep='',
-                do_at_end='',
                 stacklevel=2):
         self.func_callable = True
         if not callable(func):
@@ -49,8 +47,6 @@ class DepWrapper(object):
         self.ver_end = ver_end
         self.msg_dep = msg_dep
         self.msg_end = msg_end
-        self.do_at_dep = do_at_dep
-        self.do_at_end = do_at_end
         self.stacklevel = stacklevel
         (_ver_cur,
         _ver_dep,
@@ -91,7 +87,7 @@ class DepWrapper(object):
                     msg = self.msg_end
                 else:
                     msg = self.msg_dep
-            return UnsupportedWarning(msg), self.do_at_end
+            return UnsupportedWarning(msg)
         else:
             if not self.msg_dep:
                 self.me = "`%s` is deprecated" % (self.me,)
@@ -102,18 +98,16 @@ class DepWrapper(object):
                                                             self.ver_cur))
             else:
                 msg = self.msg_dep
-            return DeprecatedWarning(msg), self.do_at_dep
+            return DeprecatedWarning(msg)
 
     def get_deprecation_function(self):
         if self.status == self.STATUS_OK:
             return self.func # no decoration
         # decoration needs to be done
         # get the message
-        wrn, filter_wrn = self.get_deprecation_warning_config()
+        wrn = self.get_deprecation_warning_config()
         @functools.wraps(self.func)
         def wrapper(*args, **kwargs):
-            if filter_wrn:
-                warnings.simplefilter(filter_wrn, wrn.__class__)
             warnings.warn(wrn,
                         # category=wrn.__class__, # category is ignored
                         # when message is a Warning instance
@@ -141,8 +135,6 @@ def deprecate(_func=None, *,
               ver_end='',
               msg_dep='',
               msg_end='',
-              do_at_dep='',
-              do_at_end='',
               stacklevel=2,
               ):
     """Deprecate a function or method in some future version. If no version
@@ -164,15 +156,12 @@ def deprecate(_func=None, *,
         ver_end (str, optional): Version when it will be marked unsupported.
         msg_dep (str, optional): Custom message for deprecation (overrides the default).
         msg_end (str, optional): Custom message for unsupported warning (overrides the default).
-        do_at_dep (str, optional): One of 'default', 'error', 'ignore', 'always', 'module', 'once'. see https://docs.python.org/3/library/warnings.html#the-warnings-filter
-        do_at_end (str, optional): One of 'default', 'error', 'ignore', 'always', 'module', 'once'. see https://docs.python.org/3/library/warnings.html#the-warnings-filter
         stacklevel (int, optional): . Defaults to 2.
     """
     def deprecator(func):
         wrapper = DepWrapper(func, me=me, by=by,ver_cur=ver_cur,
                             ver_dep=ver_dep, ver_end=ver_end, msg_dep=msg_dep,
-                            msg_end=msg_end, do_at_dep=do_at_dep,
-                            do_at_end=do_at_end, stacklevel=stacklevel)
+                            msg_end=msg_end, stacklevel=stacklevel)
         return wrapper.get_wrapper()
     if _func:
         return deprecator(_func)
@@ -188,6 +177,7 @@ def raiseUnsupportedWarning(func):
             warnings.simplefilter('error', UnsupportedWarning)
             try:
                 result = func(*args, **kwargs)
+                warnings.simplefilter('default', UnsupportedWarning)
             except:
                 raise
         return result
