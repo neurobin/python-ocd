@@ -12,7 +12,7 @@ class Defaults():
     WEAK = 1
 ```
 
-And some new python programmer is using this piece of code and passing `Defaults.WEAK` in some methods. Suddenly, he decides that, he will use `STRONG` instead of `WEAK` and instead of going through all occurrences of `Defaults.WEAK` usage, he does the laziest thing to do: he monkey patches the code:
+Let's say, some new python programmer is using this piece of code and passing `Defaults.WEAK` in some methods. Suddenly, he decides that, he will use `STRONG` instead of `WEAK` and instead of going through all occurrences of `Defaults.WEAK` usage, he does the laziest thing to do: he monkey patches the code:
 
 ```python
 Defaults.WEAK = Defaults.STRONG
@@ -93,7 +93,7 @@ class Defaults(PropMixin):
     WEAK =  1
 ```
 
-As you can see, the `get_conf` method has two parameters: name (property name) and value (value of the property), thus, you can decide which one will be what kind of property according to their names and values. You can match names/values with a pattern and make them readonly, match with another pattern and make them non-readonly, or match with another pattern to make them both readonly and undead, etc.
+As you can see, the `get_conf` method has two parameters: name (property name) and value (value of the property), thus, you can decide which one will be what kind of property according to their names and values. You can match names/values with a pattern and make them readonly, match with another pattern and make them non-readonly, or match with another pattern to make them both readonly and undead, etc. You can return `None` for an attribute to not apply any property conversion on that specific attribute.
 
 ## Notes
 
@@ -119,6 +119,7 @@ So, you want to deprecate a function or method from version 2.0 and remove it in
 ```python
 from ocd.deprecate import deprecate
 
+# If you do not specify the versions, it will be deprecated immediately
 @deprecate(by='method2', ver_cur=package.__version__, ver_dep='2.0', ver_eol='3.0')
 def method1(self):
     return self.method2()
