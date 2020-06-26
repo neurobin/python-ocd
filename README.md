@@ -148,4 +148,4 @@ def test_method1(self):
     pass
 ```
 
-You can find the detailed documentation at [https://docs.neurobin.org/ocd/lates/](https://docs.neurobin.org/ocd/latest/).
+You can find the detailed documentation at [https://docs.neurobin.org/ocd/latest/](https://docs.neurobin.org/ocd/latest/).
