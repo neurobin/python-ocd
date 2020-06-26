@@ -103,7 +103,7 @@ We have several classes to allow different level of obsessions over attribute ac
 2. Should the attribute be deletable through class or class instance or both?
 3. Should the attributes be allowed to be accessed as items (e.g `obj['name']` instead of `obj.name`)?
 
-You can check out these classes at [https://docs.neuzunix.com/ocd/latest/unro.html](https://docs.neuzunix.com/ocd/latest/unro.html)
+You can check out these classes at [https://docs.neurobin.org/ocd/latest/unro.html](https://docs.neurobin.org/ocd/latest/unro.html)
 
 # Other obsessions
 
@@ -138,4 +138,4 @@ The unsupported warning is not that helpful, but you can raise this warning into
         pass
 ```
 
-You can find the detailed documentation at [https://docs.neurobin.org/ocd/lates/](https://docs.neurobin.org/ocd/lates/).
+You can find the detailed documentation at [https://docs.neurobin.org/ocd/lates/](https://docs.neurobin.org/ocd/latest/).
