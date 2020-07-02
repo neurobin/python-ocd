@@ -20,7 +20,7 @@ Defaults.WEAK = Defaults.STRONG
 
 With this single line of code, his goal will be accomplished but it's going to be catastrophic if he is not careful (which he is obviously not). This guy may later go to your issue page and open an issue saying that some part of your code is not working as expected.
 
-To mitigate this kind of scenario, your obsession might not be that bad of an idea. Now, introducing `ocd` aka <mark>Obsessive Coder's Day</mark> (made different from Obsessive Compulsive Disorder on purpose :D). Using `ocd` you can make your variables readonly, undeletable or both. They can be protected from class or class instances or both.
+To mitigate this kind of scenario, your obsession might not be that bad of an idea. Now, introducing `ocd` aka <mark>Obsessive Coder's Demeanor</mark> (made different from Obsessive Compulsive Disorder on purpose :D). Using `ocd` you can make your variables readonly, undeletable or both. They can be protected from class or class instances or both.
 
 # Auto property creation
 
