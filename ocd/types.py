@@ -4,7 +4,7 @@
 __author__ = 'Md Jahidul Hamid <jahidulhamid@yahoo.com>'
 __copyright__ = 'Copyright © Md Jahidul Hamid <https://github.com/neurobin/>'
 __license__ = '[BSD](http://www.opensource.org/licenses/bsd-license.php)'
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 
 class SingletonMeta(type):
@@ -46,9 +46,6 @@ class VoidType(object, metaclass=SingletonMeta):
 
     def __deepcopy__(self, memo):
         return Void
-
-    def __call__(self):
-        raise TypeError("VoidType object is not callable.")
 
     def __bool__(self):
         return False
