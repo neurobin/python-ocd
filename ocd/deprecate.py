@@ -30,7 +30,7 @@ class _DepWrapper(object):
                 ver_dep='',
                 ver_eol='',
                 msg_dep='',
-                msg_end='',
+                msg_eol='',
                 stacklevel=2):
         self.func_callable = True
         if not callable(func):
@@ -46,7 +46,7 @@ class _DepWrapper(object):
         self.ver_dep = ver_dep
         self.ver_eol = ver_eol
         self.msg_dep = msg_dep
-        self.msg_end = msg_end
+        self.msg_eol = msg_eol
         self.stacklevel = stacklevel
         (_ver_cur,
         _ver_dep,
@@ -75,7 +75,7 @@ class _DepWrapper(object):
         if self.ver_cur:
             self.ver_cur = ". Current version: `%s`." % (self.ver_cur,)
         if self.status == self.STATUS_UNSUPPORTED:
-            if not self.msg_end and not self.msg_dep:
+            if not self.msg_eol and not self.msg_dep:
                 self.me = "`%s` was deprecated" % (self.me,)
                 if self.ver_eol:
                     self.ver_eol = " and planned to be removed in version"\
@@ -83,8 +83,8 @@ class _DepWrapper(object):
                 msg = ''.join((self.me, self.by, self.ver_dep, self.ver_eol,
                                                             self.ver_cur))
             else:
-                if self.msg_end:
-                    msg = self.msg_end
+                if self.msg_eol:
+                    msg = self.msg_eol
                 else:
                     msg = self.msg_dep
             return UnsupportedWarning(msg)
@@ -134,7 +134,7 @@ def deprecate(_func=None, *,
               ver_dep='',
               ver_eol='',
               msg_dep='',
-              msg_end='',
+              msg_eol='',
               stacklevel=2):
     """Deprecate a function or method in some future version. If no version
     restraint is provided, then it will be deprecated immediately.
@@ -172,13 +172,13 @@ def deprecate(_func=None, *,
         ver_dep (str, optional): Version to deprecate from.
         ver_eol (str, optional): Version when it will be marked unsupported.
         msg_dep (str, optional): Custom message for deprecation (overrides the default).
-        msg_end (str, optional): Custom message for unsupported warning (overrides the default).
+        msg_eol (str, optional): Custom message for unsupported warning (overrides the default).
         stacklevel (int, optional): . Defaults to 2.
     """
     def deprecator(func):
         wrapper = _DepWrapper(func, me=me, by=by,ver_cur=ver_cur,
                             ver_dep=ver_dep, ver_eol=ver_eol, msg_dep=msg_dep,
-                            msg_end=msg_end, stacklevel=stacklevel)
+                            msg_eol=msg_eol, stacklevel=stacklevel)
         return wrapper.get_wrapper()
     if _func:
         return deprecator(_func)
