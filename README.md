@@ -128,7 +128,7 @@ def method1(self):
 When the version reaches 2.0, you will get a warning like this:
 
 ```
-DeprecatedWarning: `<function method1 at 0x7faf2c362c10>` is deprecated by `method2` from version `2.0` and will be removed in version `3.0`. Current version: `1.0`.
+DeprecatedWarning: `<function method1 at 0x7faf2c362c10>` is deprecated by `method2` from version `2.0` and will be removed in version `3.0`. Current version: `2.0`.
 ```
 
 and when the version reaches 3.0, you will get a warning like this:
